@@ -1,0 +1,13 @@
+[package]
+name = "emulator"
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+
+
+[dependencies]
+enum_dispatch.workspace = true
+thiserror.workspace = true
