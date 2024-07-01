@@ -142,47 +142,51 @@ impl Memory {
     #[inline(always)]
     pub fn get(&self, address: u16) -> u8 {
         let index = address as usize;
-        if MEMORY_RANGE_ROM_BANK_00.contains(&(index)) {
+        if MEMORY_RANGE_ROM_BANK_00.contains(&index) {
             return self.rom_bank_00[index];
         }
 
-        if MEMORY_RANGE_ROM_BANK_01.contains(&(index)) {
+        if MEMORY_RANGE_ROM_BANK_01.contains(&index) {
             return self.rom_bank_01[index - MEMORY_RANGE_ROM_BANK_01.start];
         }
 
-        if MEMORY_RANGE_VRAM.contains(&(index)) {
+        if MEMORY_RANGE_VRAM.contains(&index) {
             return self.vram[index - MEMORY_RANGE_VRAM.start];
         }
 
-        if MEMORY_RANGE_EXTERNAL_RAM.contains(&(index)) {
+        if MEMORY_RANGE_EXTERNAL_RAM.contains(&index) {
             return self.external_ram[index - MEMORY_RANGE_EXTERNAL_RAM.start];
         }
 
-        if MEMORY_RANGE_WORK_RAM_0.contains(&(index)) {
+        if MEMORY_RANGE_WORK_RAM_0.contains(&index) {
             return self.work_ram_0[index - MEMORY_RANGE_WORK_RAM_0.start];
         }
 
-        if MEMORY_RANGE_WORK_RAM_1.contains(&(index)) {
+        if MEMORY_RANGE_WORK_RAM_1.contains(&index) {
             return self.work_ram_1[index - MEMORY_RANGE_WORK_RAM_1.start];
         }
 
-        if MEMORY_RANGE_ECHO_RAM.contains(&(index)) {
-            return self.work_ram_0[index - MEMORY_RANGE_ECHO_RAM.start];
+        if MEMORY_RANGE_ECHO_RAM.contains(&index) {
+            let index = index - MEMORY_RANGE_ECHO_RAM.start;
+            if index < MEMORY_SIZE_WORK_RAM_0 {
+                return self.work_ram_0[index];
+            }
+            return self.work_ram_1[index - MEMORY_SIZE_WORK_RAM_0];
         }
 
-        if MEMORY_RANGE_OAM.contains(&(index)) {
+        if MEMORY_RANGE_OAM.contains(&index) {
             return self.oam[index - MEMORY_RANGE_OAM.start];
         }
 
-        if MEMORY_RANGE_NOT_USABLE.contains(&(index)) {
+        if MEMORY_RANGE_NOT_USABLE.contains(&index) {
             return self.not_usable[index - MEMORY_RANGE_NOT_USABLE.start];
         }
 
-        if MEMORY_RANGE_IO_REGISTERS.contains(&(index)) {
+        if MEMORY_RANGE_IO_REGISTERS.contains(&index) {
             return self.io_registers[index - MEMORY_RANGE_IO_REGISTERS.start];
         }
 
-        if MEMORY_RANGE_HIGH_RAM.contains(&(index)) {
+        if MEMORY_RANGE_HIGH_RAM.contains(&index) {
             return self.high_ram[index - MEMORY_RANGE_HIGH_RAM.start];
         }
 
@@ -208,47 +212,47 @@ impl Memory {
     #[inline(always)]
     pub fn get_mut(&mut self, address: u16) -> &mut u8 {
         let index = address as usize;
-        if MEMORY_RANGE_ROM_BANK_00.contains(&(index)) {
+        if MEMORY_RANGE_ROM_BANK_00.contains(&index) {
             return &mut self.rom_bank_00[index];
         }
 
-        if MEMORY_RANGE_ROM_BANK_01.contains(&(index)) {
+        if MEMORY_RANGE_ROM_BANK_01.contains(&index) {
             return &mut self.rom_bank_01[index - MEMORY_RANGE_ROM_BANK_01.start];
         }
 
-        if MEMORY_RANGE_VRAM.contains(&(index)) {
+        if MEMORY_RANGE_VRAM.contains(&index) {
             return &mut self.vram[index - MEMORY_RANGE_VRAM.start];
         }
 
-        if MEMORY_RANGE_EXTERNAL_RAM.contains(&(index)) {
+        if MEMORY_RANGE_EXTERNAL_RAM.contains(&index) {
             return &mut self.external_ram[index - MEMORY_RANGE_EXTERNAL_RAM.start];
         }
 
-        if MEMORY_RANGE_WORK_RAM_0.contains(&(index)) {
+        if MEMORY_RANGE_WORK_RAM_0.contains(&index) {
             return &mut self.work_ram_0[index - MEMORY_RANGE_WORK_RAM_0.start];
         }
 
-        if MEMORY_RANGE_WORK_RAM_1.contains(&(index)) {
+        if MEMORY_RANGE_WORK_RAM_1.contains(&index) {
             return &mut self.work_ram_1[index - MEMORY_RANGE_WORK_RAM_1.start];
         }
 
-        if MEMORY_RANGE_ECHO_RAM.contains(&(index)) {
+        if MEMORY_RANGE_ECHO_RAM.contains(&index) {
             return &mut self.work_ram_0[index - MEMORY_RANGE_ECHO_RAM.start];
         }
 
-        if MEMORY_RANGE_OAM.contains(&(index)) {
+        if MEMORY_RANGE_OAM.contains(&index) {
             return &mut self.oam[index - MEMORY_RANGE_OAM.start];
         }
 
-        if MEMORY_RANGE_NOT_USABLE.contains(&(index)) {
+        if MEMORY_RANGE_NOT_USABLE.contains(&index) {
             return &mut self.not_usable[index - MEMORY_RANGE_NOT_USABLE.start];
         }
 
-        if MEMORY_RANGE_IO_REGISTERS.contains(&(index)) {
+        if MEMORY_RANGE_IO_REGISTERS.contains(&index) {
             return &mut self.io_registers[index - MEMORY_RANGE_IO_REGISTERS.start];
         }
 
-        if MEMORY_RANGE_HIGH_RAM.contains(&(index)) {
+        if MEMORY_RANGE_HIGH_RAM.contains(&index) {
             return &mut self.high_ram[index - MEMORY_RANGE_HIGH_RAM.start];
         }
 
@@ -268,4 +272,13 @@ impl Memory {
 pub trait MemoryAccess {
     fn at(&self, emulator: &Emulator) -> u8;
     fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8;
+}
+
+#[test]
+fn test_memory_access_at_region_edges() {
+    let memory = Memory::default();
+
+    const ADDRESS: usize = MEMORY_RANGE_ECHO_RAM.start + 4096;
+
+    memory.get(ADDRESS as u16);
 }

@@ -10,3 +10,4 @@ README.md
 .idea
 node_modules
 
+/logs.log

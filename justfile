@@ -9,3 +9,6 @@ fmt:
 
 clippy:
     cargo clippy --all-targets --all-features -- -D warnings
+
+run:
+    cargo run --bin runner
