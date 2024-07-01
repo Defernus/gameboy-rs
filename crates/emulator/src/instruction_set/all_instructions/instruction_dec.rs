@@ -23,17 +23,15 @@ impl InstructionTrait for InstructionDEC {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         match self {
             Self::R8(reg) => {
-                let prev_4th_bit = reg.get(emulator) & 0b0001_0000 != 0;
+                let half_carry = reg.get(emulator) & 0b0001_0000 == 0;
 
                 let result = reg.get(emulator).wrapping_sub(1);
 
-                let new_4th_bit = reg.get(emulator) & 0b0001_0000 != 0;
-
                 let flags = emulator.accumulator_and_flags.low_mut();
 
-                set_flag(flags, ZERO_FLAG, result == 0);
-                set_flag(flags, SUBTRACT_FLAG, true);
-                set_flag(flags, HALF_CARRY_FLAG, prev_4th_bit && !new_4th_bit);
+                set_flag(flags, FLAG_ZERO, result == 0);
+                set_flag(flags, FLAG_SUBTRACT, true);
+                set_flag(flags, FLAG_HALF_CARRY, half_carry);
 
                 reg.set(emulator, result);
 

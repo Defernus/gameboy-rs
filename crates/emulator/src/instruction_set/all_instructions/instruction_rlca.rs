@@ -19,9 +19,9 @@ impl InstructionTrait for InstructionRLCA {
         rotate_register_left(emulator, ArgumentR8::A);
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, ZERO_FLAG, false);
-        set_flag(flags, SUBTRACT_FLAG, false);
-        set_flag(flags, HALF_CARRY_FLAG, false);
+        set_flag(flags, FLAG_ZERO, false);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, false);
 
         1
     }

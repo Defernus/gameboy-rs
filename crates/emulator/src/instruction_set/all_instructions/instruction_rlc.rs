@@ -21,9 +21,9 @@ impl InstructionTrait for InstructionRLC {
         let result = rotate_register_left_carry(emulator, reg);
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, ZERO_FLAG, result == 0);
-        set_flag(flags, SUBTRACT_FLAG, false);
-        set_flag(flags, HALF_CARRY_FLAG, false);
+        set_flag(flags, FLAG_ZERO, result == 0);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, false);
 
         if reg == ArgumentR8::AtHL {
             4
@@ -39,7 +39,7 @@ pub fn rotate_register_left(emulator: &mut Emulator, reg: ArgumentR8) -> u8 {
 
     let carry = value & 0b1000_0000 != 0;
     let flags = emulator.accumulator_and_flags.low_mut();
-    set_flag(flags, CARRY_FLAG, carry);
+    set_flag(flags, FLAG_CARRY, carry);
 
     let result = (value << 1) | carry as u8;
     reg.set(emulator, result);

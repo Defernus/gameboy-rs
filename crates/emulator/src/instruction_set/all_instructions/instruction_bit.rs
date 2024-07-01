@@ -24,9 +24,9 @@ impl InstructionTrait for InstructionBIT {
 
         let flags = emulator.accumulator_and_flags.low_mut();
 
-        set_flag(flags, ZERO_FLAG, !bit_set);
-        set_flag(flags, SUBTRACT_FLAG, false);
-        set_flag(flags, HALF_CARRY_FLAG, true);
+        set_flag(flags, FLAG_ZERO, !bit_set);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, true);
 
         if register == ArgumentR8::AtHL {
             3

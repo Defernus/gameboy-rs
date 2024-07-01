@@ -18,8 +18,8 @@ impl InstructionTrait for InstructionDAA {
         let mut register_a = emulator.accumulator_and_flags.high();
 
         let flags = emulator.accumulator_and_flags.low();
-        let half_carry = get_flag(flags, HALF_CARRY_FLAG);
-        let carry = get_flag(flags, CARRY_FLAG);
+        let half_carry = get_flag(flags, FLAG_HALF_CARRY);
+        let carry = get_flag(flags, FLAG_CARRY);
 
         if register_a & 0x0F > 9 || half_carry {
             register_a = register_a.wrapping_add(0x06);
@@ -34,9 +34,9 @@ impl InstructionTrait for InstructionDAA {
         };
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, ZERO_FLAG, register_a == 0);
-        set_flag(flags, HALF_CARRY_FLAG, false);
-        set_flag(flags, CARRY_FLAG, adjust);
+        set_flag(flags, FLAG_ZERO, register_a == 0);
+        set_flag(flags, FLAG_HALF_CARRY, false);
+        set_flag(flags, FLAG_CARRY, adjust);
 
         emulator.accumulator_and_flags.set_high(register_a);
 

@@ -21,9 +21,9 @@ impl InstructionTrait for InstructionRR {
         let result = rotate_register_right_carry(emulator, reg);
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, ZERO_FLAG, result == 0);
-        set_flag(flags, SUBTRACT_FLAG, false);
-        set_flag(flags, HALF_CARRY_FLAG, false);
+        set_flag(flags, FLAG_ZERO, result == 0);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, false);
 
         if reg == ArgumentR8::AtHL {
             4
@@ -38,12 +38,12 @@ pub fn rotate_register_right_carry(emulator: &mut Emulator, reg: ArgumentR8) -> 
     let value = reg.get(emulator);
 
     let flags = emulator.accumulator_and_flags.low();
-    let old_carry = get_flag(flags, CARRY_FLAG) as u8;
+    let old_carry = get_flag(flags, FLAG_CARRY) as u8;
 
     let new_carry = value & 0b0000_0001 != 0;
 
     let flags = emulator.accumulator_and_flags.low_mut();
-    set_flag(flags, CARRY_FLAG, new_carry);
+    set_flag(flags, FLAG_CARRY, new_carry);
 
     let result = (value >> 1) | (old_carry << 7);
     reg.set(emulator, result);

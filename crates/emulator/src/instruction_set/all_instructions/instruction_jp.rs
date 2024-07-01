@@ -19,7 +19,7 @@ impl InstructionTrait for InstructionJP {
                 4
             }
             Self::CC_N16(condition, to_address) => {
-                if condition.read(emulator) {
+                if condition.get(emulator) {
                     emulator.program_counter = to_address.get(emulator).into();
                     4
                 } else {

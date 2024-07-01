@@ -65,7 +65,7 @@ impl ArgumentRead for ArgumentR8 {
     }
 }
 
-/// r16 argument. Any of the general-purpose 16-bit registers
+/// r16 argument. Any of the general-purpose 16-bit registers and SP (stack pointer).
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum ArgumentR16 {
     BC,
@@ -115,6 +115,67 @@ impl ArgumentRead for ArgumentR16 {
 }
 
 impl MemoryAccess for ArgumentR16 {
+    /// Returns the value of the memory at the address in the 16-bit register.
+    fn at(&self, emulator: &Emulator) -> u8 {
+        emulator.memory.get(self.get(emulator))
+    }
+
+    /// Returns a mutable reference to the memory at the address in the 16-bit register.
+    fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
+        emulator.memory.get_mut(self.get(emulator))
+    }
+}
+
+/// r16stk argument. Any of the general-purpose 16-bit registers and AF (accumulator and flags).
+#[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+pub enum ArgumentStkR16 {
+    BC,
+    DE,
+    HL,
+    AF,
+}
+
+impl ArgumentStkR16 {
+    /// Used to parse the bits of the opcode to determine the register
+    pub fn from_bits(b0: bool, b1: bool) -> Self {
+        match (b0, b1) {
+            (false, false) => Self::BC,
+            (false, true) => Self::DE,
+            (true, false) => Self::HL,
+            (true, true) => Self::AF,
+        }
+    }
+}
+
+impl ArgumentWrite for ArgumentStkR16 {
+    type Result = u16;
+
+    /// Returns a mutable reference to the 16-bit register.
+    fn get_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut Self::Result {
+        match self {
+            Self::BC => emulator.register_bc.as_u16_mut(),
+            Self::DE => emulator.register_de.as_u16_mut(),
+            Self::HL => emulator.register_hl.as_u16_mut(),
+            Self::AF => emulator.accumulator_and_flags.as_u16_mut(),
+        }
+    }
+}
+
+impl ArgumentRead for ArgumentStkR16 {
+    type Result = u16;
+
+    /// Returns the value of the 16-bit register.
+    fn get(&self, emulator: &Emulator) -> Self::Result {
+        match self {
+            Self::BC => emulator.register_bc.as_u16(),
+            Self::DE => emulator.register_de.as_u16(),
+            Self::HL => emulator.register_hl.as_u16(),
+            Self::AF => emulator.accumulator_and_flags.as_u16(),
+        }
+    }
+}
+
+impl MemoryAccess for ArgumentStkR16 {
     /// Returns the value of the memory at the address in the 16-bit register.
     fn at(&self, emulator: &Emulator) -> u8 {
         emulator.memory.get(self.get(emulator))
@@ -225,16 +286,40 @@ impl From<ArgumentU3> for u8 {
 
 /// cc argument. Condition code.
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
-pub struct ArgumentCC(pub u8); // TODO implement condition code argument
+pub enum ArgumentCC {
+    /// Z flag is reset
+    NZ,
+    /// Z flag is set
+    Z,
+    /// C flag is reset
+    NC,
+    /// C flag is set
+    C,
+}
 
 impl ArgumentCC {
-    pub fn read(self, emulator: &Emulator) -> bool {
-        (self.0 & emulator.accumulator_and_flags.low()) & FLAGS_MASK != 0
-    }
-
     pub fn from_bits(b0: bool, b1: bool) -> Self {
-        let value = (b0 as u8) << 1 | b1 as u8;
-        Self(value)
+        match (b0, b1) {
+            (false, false) => Self::NZ,
+            (false, true) => Self::Z,
+            (true, false) => Self::NC,
+            (true, true) => Self::C,
+        }
+    }
+}
+
+impl ArgumentRead for ArgumentCC {
+    type Result = bool;
+
+    fn get(&self, emulator: &Emulator) -> Self::Result {
+        let flags = emulator.accumulator_and_flags.low();
+
+        match self {
+            Self::NZ => !get_flag(flags, FLAG_ZERO),
+            Self::Z => get_flag(flags, FLAG_ZERO),
+            Self::NC => !get_flag(flags, FLAG_CARRY),
+            Self::C => get_flag(flags, FLAG_CARRY),
+        }
     }
 }
 

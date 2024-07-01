@@ -5,76 +5,99 @@ pub const MEMORY_SIZE: usize = 0x10000;
 /// 16 KiB ROM bank 00
 ///
 /// From cartridge, usually a fixed bank
-pub const ROM_BANK_00_RANGE: std::ops::Range<usize> = 0x0000..0x4000;
-pub const ROM_BANK_00_SIZE: usize = 0x4000;
+pub const MEMORY_RANGE_ROM_BANK_00: std::ops::Range<usize> = 0x0000..0x4000;
+pub const MEMORY_SIZE_ROM_BANK_00: usize =
+    MEMORY_RANGE_ROM_BANK_00.end - MEMORY_RANGE_ROM_BANK_00.start;
 
 /// 16 KiB ROM Bank 01–NN
 ///
 /// From cartridge, switchable bank via mapper (if any)
-pub const ROM_BANK_01_RANGE: std::ops::Range<usize> = 0x4000..0x8000;
-pub const ROM_BANK_01_SIZE: usize = 0x8000 - 0x4000;
+pub const MEMORY_RANGE_ROM_BANK_01: std::ops::Range<usize> = 0x4000..0x8000;
+pub const MEMORY_SIZE_ROM_BANK_01: usize =
+    MEMORY_RANGE_ROM_BANK_01.end - MEMORY_RANGE_ROM_BANK_01.start;
 
 /// 8 KiB Video RAM (VRAM)
 ///
 /// In CGB mode, switchable bank 0/1
-pub const VRAM_RANGE: std::ops::Range<usize> = 0x8000..0xA000;
-pub const VRAM_SIZE: usize = 0xA000 - 0x8000;
+pub const MEMORY_RANGE_VRAM: std::ops::Range<usize> = 0x8000..0xA000;
+pub const MEMORY_SIZE_VRAM: usize = MEMORY_RANGE_VRAM.end - MEMORY_RANGE_VRAM.start;
 
 /// 8 KiB External RAM
 ///
 /// From cartridge, switchable bank if any
-pub const EXTERNAL_RAM_RANGE: std::ops::Range<usize> = 0xA000..0xC000;
-pub const EXTERNAL_RAM_SIZE: usize = 0xC000 - 0xA000;
+pub const MEMORY_RANGE_EXTERNAL_RAM: std::ops::Range<usize> = 0xA000..0xC000;
+pub const MEMORY_SIZE_EXTERNAL_RAM: usize =
+    MEMORY_RANGE_EXTERNAL_RAM.end - MEMORY_RANGE_EXTERNAL_RAM.start;
 
 /// 4 KiB Work RAM (WRAM)
-pub const WORK_RAM_0_RANGE: std::ops::Range<usize> = 0xC000..0xD000;
-pub const WORK_RAM_0_SIZE: usize = 0xD000 - 0xC000;
+pub const MEMORY_RANGE_WORK_RAM_0: std::ops::Range<usize> = 0xC000..0xD000;
+pub const MEMORY_SIZE_WORK_RAM_0: usize =
+    MEMORY_RANGE_WORK_RAM_0.end - MEMORY_RANGE_WORK_RAM_0.start;
 
 /// 4 KiB Work RAM (WRAM) In CGB mode, switchable bank 1–7
-pub const WORK_RAM_1_RANGE: std::ops::Range<usize> = 0xD000..0xE000;
-pub const WORK_RAM_1_SIZE: usize = 0xE000 - 0xD000;
+pub const MEMORY_RANGE_WORK_RAM_1: std::ops::Range<usize> = 0xD000..0xE000;
+pub const MEMORY_SIZE_WORK_RAM_1: usize =
+    MEMORY_RANGE_WORK_RAM_1.end - MEMORY_RANGE_WORK_RAM_1.start;
 
 /// Echo RAM (mirror of C000–DDFF)
 ///
 /// Nintendo says use of this area is prohibited.
-pub const ECHO_RAM_RANGE: std::ops::Range<usize> = 0xE000..0xFE00;
-pub const ECHO_RAM_SIZE: usize = 0xFE00 - 0xE000;
+pub const MEMORY_RANGE_ECHO_RAM: std::ops::Range<usize> = 0xE000..0xFE00;
+pub const MEMORY_SIZE_ECHO_RAM: usize = MEMORY_RANGE_ECHO_RAM.end - MEMORY_RANGE_ECHO_RAM.start;
 
 /// Object attribute memory (OAM)
-pub const OAM_RANGE: std::ops::Range<usize> = 0xFE00..0xFEA0;
-pub const OAM_SIZE: usize = 0xFEA0 - 0xFE00;
+pub const MEMORY_RANGE_OAM: std::ops::Range<usize> = 0xFE00..0xFEA0;
+pub const MEMORY_SIZE_OAM: usize = MEMORY_RANGE_OAM.end - MEMORY_RANGE_OAM.start;
 
 /// Not Usable.
 ///
 /// Nintendo says use of this area is prohibited.
-pub const NOT_USABLE_RANGE: std::ops::Range<usize> = 0xFEA0..0xFF00;
-pub const NOT_USABLE_SIZE: usize = 0xFF00 - 0xFEA0;
+pub const MEMORY_RANGE_NOT_USABLE: std::ops::Range<usize> = 0xFEA0..0xFF00;
+pub const MEMORY_SIZE_NOT_USABLE: usize =
+    MEMORY_RANGE_NOT_USABLE.end - MEMORY_RANGE_NOT_USABLE.start;
 
 /// I/O Registers
-pub const IO_REGISTERS_RANGE: std::ops::Range<usize> = 0xFF00..0xFF80;
-pub const IO_REGISTERS_SIZE: usize = 0xFF80 - 0xFF00;
+pub const MEMORY_RANGE_IO_REGISTERS: std::ops::Range<usize> = 0xFF00..0xFF80;
+pub const MEMORY_SIZE_IO_REGISTERS: usize =
+    MEMORY_RANGE_IO_REGISTERS.end - MEMORY_RANGE_IO_REGISTERS.start;
 
 /// High RAM (HRAM)
-pub const HIGH_RAM_RANGE: std::ops::Range<usize> = 0xFF80..0xFFFF;
-pub const HIGH_RAM_SIZE: usize = 0xFFFF - 0xFF80;
+pub const MEMORY_RANGE_HIGH_RAM: std::ops::Range<usize> = 0xFF80..0xFFFF;
+pub const MEMORY_SIZE_HIGH_RAM: usize = MEMORY_RANGE_HIGH_RAM.end - MEMORY_RANGE_HIGH_RAM.start;
 
 /// Interrupt Enable register (IE)
-pub const INTERRUPT_ENABLE_REGISTER_RANGE: std::ops::Range<usize> = 0xFFFF..0x10000;
-pub const INTERRUPT_ENABLE_REGISTER_SIZE: usize = 1;
+pub const MEMORY_ADDRESS_INTERRUPT_ENABLE_REGISTER: usize = 0xFFFF;
+
+pub const MEMORY_RANGE_TILE_INDICES_BANK0: std::ops::Range<usize> = 0x9800..0x9BFF;
+pub const MEMORY_RANGE_TILE_INDICES_BANK1: std::ops::Range<usize> = 0x9C00..0x9FFF;
+
+/// Background and Window tiles block 0 (first half of object tiles)
+pub const MEMORY_RANGE_TILES_BLOCK0: std::ops::Range<usize> = 0x8000..0x87FF;
+/// Background and Window tiles block 1 (second half of object tiles)
+pub const MEMORY_RANGE_TILES_BLOCK1: std::ops::Range<usize> = 0x8800..0x8FFF;
+/// Background and Window tiles block 2 (can't be used for object tiles)
+pub const MEMORY_RANGE_TILES_BLOCK2: std::ops::Range<usize> = 0x9000..0x97FF;
+
+/// Object Tiles
+pub const MEMORY_RANGE_OBJECT_TILES: std::ops::Range<usize> = 0x8000..0x8FFF;
 
 // TODO add I/O range
 
+pub const MEMORY_ADDRESS_REGISTER_LCDC: u16 = 0xFF40;
+pub const LCDC_BW_WINDOW_TILES_MASK: u8 = 0b0001_0000;
+pub const LCDC_BW_TILE_MAP_MASK: u8 = 0b0000_1000;
+
 pub struct Memory {
-    pub rom_bank_00: Box<[u8; ROM_BANK_00_SIZE]>,
-    pub rom_bank_01: Box<[u8; ROM_BANK_01_SIZE]>,
-    pub vram: Box<[u8; VRAM_SIZE]>,
-    pub external_ram: Box<[u8; EXTERNAL_RAM_SIZE]>,
-    pub work_ram_0: Box<[u8; WORK_RAM_0_SIZE]>,
-    pub work_ram_1: Box<[u8; WORK_RAM_1_SIZE]>,
-    pub oam: Box<[u8; OAM_SIZE]>,
-    pub not_usable: Box<[u8; NOT_USABLE_SIZE]>,
-    pub io_registers: Box<[u8; IO_REGISTERS_SIZE]>,
-    pub high_ram: Box<[u8; HIGH_RAM_SIZE]>,
+    pub rom_bank_00: Box<[u8; MEMORY_SIZE_ROM_BANK_00]>,
+    pub rom_bank_01: Box<[u8; MEMORY_SIZE_ROM_BANK_01]>,
+    pub vram: Box<[u8; MEMORY_SIZE_VRAM]>,
+    pub external_ram: Box<[u8; MEMORY_SIZE_EXTERNAL_RAM]>,
+    pub work_ram_0: Box<[u8; MEMORY_SIZE_WORK_RAM_0]>,
+    pub work_ram_1: Box<[u8; MEMORY_SIZE_WORK_RAM_1]>,
+    pub oam: Box<[u8; MEMORY_SIZE_OAM]>,
+    pub not_usable: Box<[u8; MEMORY_SIZE_NOT_USABLE]>,
+    pub io_registers: Box<[u8; MEMORY_SIZE_IO_REGISTERS]>,
+    pub high_ram: Box<[u8; MEMORY_SIZE_HIGH_RAM]>,
     pub interrupt_enable_register: u8,
 }
 
@@ -88,29 +111,29 @@ impl Memory {
     #[inline(always)]
     pub fn new() -> Self {
         Self {
-            rom_bank_00: Box::new([0; ROM_BANK_00_SIZE]),
-            rom_bank_01: Box::new([0; ROM_BANK_01_SIZE]),
-            vram: Box::new([0; VRAM_SIZE]),
-            external_ram: Box::new([0; EXTERNAL_RAM_SIZE]),
-            work_ram_0: Box::new([0; WORK_RAM_0_SIZE]),
-            work_ram_1: Box::new([0; WORK_RAM_1_SIZE]),
-            oam: Box::new([0; OAM_SIZE]),
-            not_usable: Box::new([0; NOT_USABLE_SIZE]),
-            io_registers: Box::new([0; IO_REGISTERS_SIZE]),
-            high_ram: Box::new([0; HIGH_RAM_SIZE]),
+            rom_bank_00: Box::new([0; MEMORY_SIZE_ROM_BANK_00]),
+            rom_bank_01: Box::new([0; MEMORY_SIZE_ROM_BANK_01]),
+            vram: Box::new([0; MEMORY_SIZE_VRAM]),
+            external_ram: Box::new([0; MEMORY_SIZE_EXTERNAL_RAM]),
+            work_ram_0: Box::new([0; MEMORY_SIZE_WORK_RAM_0]),
+            work_ram_1: Box::new([0; MEMORY_SIZE_WORK_RAM_1]),
+            oam: Box::new([0; MEMORY_SIZE_OAM]),
+            not_usable: Box::new([0; MEMORY_SIZE_NOT_USABLE]),
+            io_registers: Box::new([0; MEMORY_SIZE_IO_REGISTERS]),
+            high_ram: Box::new([0; MEMORY_SIZE_HIGH_RAM]),
             interrupt_enable_register: 0,
         }
     }
 
     pub fn load_rom(&mut self, rom: &mut Rom) {
         self.rom_bank_00 = Box::new(
-            rom.read_range(ROM_BANK_00_RANGE)
+            rom.read_range(MEMORY_RANGE_ROM_BANK_00)
                 .try_into()
                 .expect("Invalid ROM bank 00 size"),
         );
 
         self.rom_bank_01 = Box::new(
-            rom.read_range(ROM_BANK_01_RANGE)
+            rom.read_range(MEMORY_RANGE_ROM_BANK_01)
                 .try_into()
                 .expect("Invalid ROM bank 01 size"),
         );
@@ -119,51 +142,51 @@ impl Memory {
     #[inline(always)]
     pub fn get(&self, address: u16) -> u8 {
         let index = address as usize;
-        if ROM_BANK_00_RANGE.contains(&(index)) {
+        if MEMORY_RANGE_ROM_BANK_00.contains(&(index)) {
             return self.rom_bank_00[index];
         }
 
-        if ROM_BANK_01_RANGE.contains(&(index)) {
-            return self.rom_bank_01[index - ROM_BANK_01_RANGE.start];
+        if MEMORY_RANGE_ROM_BANK_01.contains(&(index)) {
+            return self.rom_bank_01[index - MEMORY_RANGE_ROM_BANK_01.start];
         }
 
-        if VRAM_RANGE.contains(&(index)) {
-            return self.vram[index - VRAM_RANGE.start];
+        if MEMORY_RANGE_VRAM.contains(&(index)) {
+            return self.vram[index - MEMORY_RANGE_VRAM.start];
         }
 
-        if EXTERNAL_RAM_RANGE.contains(&(index)) {
-            return self.external_ram[index - EXTERNAL_RAM_RANGE.start];
+        if MEMORY_RANGE_EXTERNAL_RAM.contains(&(index)) {
+            return self.external_ram[index - MEMORY_RANGE_EXTERNAL_RAM.start];
         }
 
-        if WORK_RAM_0_RANGE.contains(&(index)) {
-            return self.work_ram_0[index - WORK_RAM_0_RANGE.start];
+        if MEMORY_RANGE_WORK_RAM_0.contains(&(index)) {
+            return self.work_ram_0[index - MEMORY_RANGE_WORK_RAM_0.start];
         }
 
-        if WORK_RAM_1_RANGE.contains(&(index)) {
-            return self.work_ram_1[index - WORK_RAM_1_RANGE.start];
+        if MEMORY_RANGE_WORK_RAM_1.contains(&(index)) {
+            return self.work_ram_1[index - MEMORY_RANGE_WORK_RAM_1.start];
         }
 
-        if ECHO_RAM_RANGE.contains(&(index)) {
-            return self.work_ram_0[index - ECHO_RAM_RANGE.start];
+        if MEMORY_RANGE_ECHO_RAM.contains(&(index)) {
+            return self.work_ram_0[index - MEMORY_RANGE_ECHO_RAM.start];
         }
 
-        if OAM_RANGE.contains(&(index)) {
-            return self.oam[index - OAM_RANGE.start];
+        if MEMORY_RANGE_OAM.contains(&(index)) {
+            return self.oam[index - MEMORY_RANGE_OAM.start];
         }
 
-        if NOT_USABLE_RANGE.contains(&(index)) {
-            return self.not_usable[index - NOT_USABLE_RANGE.start];
+        if MEMORY_RANGE_NOT_USABLE.contains(&(index)) {
+            return self.not_usable[index - MEMORY_RANGE_NOT_USABLE.start];
         }
 
-        if IO_REGISTERS_RANGE.contains(&(index)) {
-            return self.io_registers[index - IO_REGISTERS_RANGE.start];
+        if MEMORY_RANGE_IO_REGISTERS.contains(&(index)) {
+            return self.io_registers[index - MEMORY_RANGE_IO_REGISTERS.start];
         }
 
-        if HIGH_RAM_RANGE.contains(&(index)) {
-            return self.high_ram[index - HIGH_RAM_RANGE.start];
+        if MEMORY_RANGE_HIGH_RAM.contains(&(index)) {
+            return self.high_ram[index - MEMORY_RANGE_HIGH_RAM.start];
         }
 
-        if INTERRUPT_ENABLE_REGISTER_RANGE.contains(&(index)) {
+        if MEMORY_ADDRESS_INTERRUPT_ENABLE_REGISTER == index {
             return self.interrupt_enable_register;
         }
 
@@ -185,51 +208,51 @@ impl Memory {
     #[inline(always)]
     pub fn get_mut(&mut self, address: u16) -> &mut u8 {
         let index = address as usize;
-        if ROM_BANK_00_RANGE.contains(&(index)) {
+        if MEMORY_RANGE_ROM_BANK_00.contains(&(index)) {
             return &mut self.rom_bank_00[index];
         }
 
-        if ROM_BANK_01_RANGE.contains(&(index)) {
-            return &mut self.rom_bank_01[index - ROM_BANK_01_RANGE.start];
+        if MEMORY_RANGE_ROM_BANK_01.contains(&(index)) {
+            return &mut self.rom_bank_01[index - MEMORY_RANGE_ROM_BANK_01.start];
         }
 
-        if VRAM_RANGE.contains(&(index)) {
-            return &mut self.vram[index - VRAM_RANGE.start];
+        if MEMORY_RANGE_VRAM.contains(&(index)) {
+            return &mut self.vram[index - MEMORY_RANGE_VRAM.start];
         }
 
-        if EXTERNAL_RAM_RANGE.contains(&(index)) {
-            return &mut self.external_ram[index - EXTERNAL_RAM_RANGE.start];
+        if MEMORY_RANGE_EXTERNAL_RAM.contains(&(index)) {
+            return &mut self.external_ram[index - MEMORY_RANGE_EXTERNAL_RAM.start];
         }
 
-        if WORK_RAM_0_RANGE.contains(&(index)) {
-            return &mut self.work_ram_0[index - WORK_RAM_0_RANGE.start];
+        if MEMORY_RANGE_WORK_RAM_0.contains(&(index)) {
+            return &mut self.work_ram_0[index - MEMORY_RANGE_WORK_RAM_0.start];
         }
 
-        if WORK_RAM_1_RANGE.contains(&(index)) {
-            return &mut self.work_ram_1[index - WORK_RAM_1_RANGE.start];
+        if MEMORY_RANGE_WORK_RAM_1.contains(&(index)) {
+            return &mut self.work_ram_1[index - MEMORY_RANGE_WORK_RAM_1.start];
         }
 
-        if ECHO_RAM_RANGE.contains(&(index)) {
-            return &mut self.work_ram_0[index - ECHO_RAM_RANGE.start];
+        if MEMORY_RANGE_ECHO_RAM.contains(&(index)) {
+            return &mut self.work_ram_0[index - MEMORY_RANGE_ECHO_RAM.start];
         }
 
-        if OAM_RANGE.contains(&(index)) {
-            return &mut self.oam[index - OAM_RANGE.start];
+        if MEMORY_RANGE_OAM.contains(&(index)) {
+            return &mut self.oam[index - MEMORY_RANGE_OAM.start];
         }
 
-        if NOT_USABLE_RANGE.contains(&(index)) {
-            return &mut self.not_usable[index - NOT_USABLE_RANGE.start];
+        if MEMORY_RANGE_NOT_USABLE.contains(&(index)) {
+            return &mut self.not_usable[index - MEMORY_RANGE_NOT_USABLE.start];
         }
 
-        if IO_REGISTERS_RANGE.contains(&(index)) {
-            return &mut self.io_registers[index - IO_REGISTERS_RANGE.start];
+        if MEMORY_RANGE_IO_REGISTERS.contains(&(index)) {
+            return &mut self.io_registers[index - MEMORY_RANGE_IO_REGISTERS.start];
         }
 
-        if HIGH_RAM_RANGE.contains(&(index)) {
-            return &mut self.high_ram[index - HIGH_RAM_RANGE.start];
+        if MEMORY_RANGE_HIGH_RAM.contains(&(index)) {
+            return &mut self.high_ram[index - MEMORY_RANGE_HIGH_RAM.start];
         }
 
-        if INTERRUPT_ENABLE_REGISTER_RANGE.contains(&(index)) {
+        if MEMORY_ADDRESS_INTERRUPT_ENABLE_REGISTER == index {
             return &mut self.interrupt_enable_register;
         }
 

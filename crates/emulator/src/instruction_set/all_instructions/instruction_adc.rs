@@ -25,10 +25,10 @@ impl InstructionTrait for InstructionADC {
             InstructionADC::A_N8(arg) => (arg.get(emulator), 2),
         };
 
-        let register_a = emulator.accumulator_and_flags.low();
+        let register_a = emulator.accumulator_and_flags.high();
 
         let flags = emulator.accumulator_and_flags.low();
-        let carry = get_flag(flags, CARRY_FLAG) as u8;
+        let carry = get_flag(flags, FLAG_CARRY) as u8;
 
         let result = register_a.wrapping_add(input_value).wrapping_add(carry);
 
@@ -36,12 +36,12 @@ impl InstructionTrait for InstructionADC {
         let carry = (register_a as u16) + (input_value as u16) + (carry as u16) > 0xFF;
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, ZERO_FLAG, result == 0);
-        invert_flag(flags, SUBTRACT_FLAG);
-        set_flag(flags, HALF_CARRY_FLAG, half_carry);
-        set_flag(flags, CARRY_FLAG, carry);
+        set_flag(flags, FLAG_ZERO, result == 0);
+        invert_flag(flags, FLAG_SUBTRACT);
+        set_flag(flags, FLAG_HALF_CARRY, half_carry);
+        set_flag(flags, FLAG_CARRY, carry);
 
-        emulator.accumulator_and_flags.set_low(result);
+        emulator.accumulator_and_flags.set_high(result);
 
         cycles
     }

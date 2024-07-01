@@ -83,7 +83,7 @@ impl Instruction {
     /// Read an instruction from memory at the given program counter.
     ///
     /// Returns the instruction and the number of bytes read.
-    pub fn read(memory: &Memory, program_counter: ProgramCounter) -> Option<(Self, u16)> {
+    pub fn read(memory: &Memory, program_counter: ProgramCounter) -> Option<(Self, u8)> {
         let opcode = memory.get(program_counter.into());
 
         let bits = to_bits(opcode);
@@ -104,13 +104,25 @@ impl Instruction {
             bits![0, 0, b0, b1, 0, 0, 1, 0] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
-                Some((Self::LD(InstructionLD::AtR16_A(r16)), 1))
+                let data = match r16 {
+                    ArgumentR16::BC | ArgumentR16::DE => InstructionLD::AtR16_A(r16),
+                    ArgumentR16::HL => InstructionLD::AtHLI_A,
+                    ArgumentR16::SP => InstructionLD::AtHLD_A,
+                };
+
+                Some((Self::LD(data), 1))
             }
             // ld a, [r16mem]	0	0	Source (r16mem)	1	0	1	0
             bits![0, 0, b0, b1, 1, 0, 1, 0] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
-                Some((Self::LD(InstructionLD::A_AtR16(r16)), 1))
+                let data = match r16 {
+                    ArgumentR16::BC | ArgumentR16::DE => InstructionLD::A_AtR16(r16),
+                    ArgumentR16::HL => InstructionLD::A_AtHLI,
+                    ArgumentR16::SP => InstructionLD::A_AtHLD,
+                };
+
+                Some((Self::LD(data), 1))
             }
             // ld [n16], sp	0	0	0	0	1	0	0	0
             bits![0, 0, 0, 0, 1, 0, 0, 0] => {
@@ -359,15 +371,15 @@ impl Instruction {
 
             // pop r16stk	1	1	Register (r16stk)	0	0	0	1
             bits![1, 1, b0, b1, 0, 0, 0, 1] => {
-                let r16 = ArgumentR16::from_bits(b0, b1);
+                let r16_stk = ArgumentStkR16::from_bits(b0, b1);
 
-                Some((Self::POP(InstructionPOP::R16(r16)), 1))
+                Some((Self::POP(InstructionPOP(r16_stk)), 1))
             }
             // push r16stk	1	1	Register (r16stk)	0	1	0	1
             bits![1, 1, b0, b1, 0, 1, 0, 1] => {
-                let r16 = ArgumentR16::from_bits(b0, b1);
+                let r16_stk = ArgumentStkR16::from_bits(b0, b1);
 
-                Some((Self::PUSH(InstructionPUSH::R16(r16)), 1))
+                Some((Self::PUSH(InstructionPUSH(r16_stk)), 1))
             }
 
             // ldh [c], a	1	1	1	0	0	0	1	0

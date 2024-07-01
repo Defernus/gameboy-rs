@@ -53,8 +53,8 @@ fn update_flags(emulator: &mut Emulator, register_a: u8, value: u8) {
 
     let flags = emulator.accumulator_and_flags.low_mut();
 
-    set_flag(flags, ZERO_FLAG, borrow == 0);
-    set_flag(flags, SUBTRACT_FLAG, true);
-    set_flag(flags, HALF_CARRY_FLAG, prev_4th_bit && !new_4th_bit);
-    set_flag(flags, CARRY_FLAG, register_a < value);
+    set_flag(flags, FLAG_ZERO, borrow == 0);
+    set_flag(flags, FLAG_SUBTRACT, true);
+    set_flag(flags, FLAG_HALF_CARRY, prev_4th_bit && !new_4th_bit);
+    set_flag(flags, FLAG_CARRY, register_a < value);
 }

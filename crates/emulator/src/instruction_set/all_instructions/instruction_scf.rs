@@ -16,9 +16,9 @@ pub struct InstructionSCF;
 impl InstructionTrait for InstructionSCF {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, SUBTRACT_FLAG, false);
-        set_flag(flags, HALF_CARRY_FLAG, false);
-        set_flag(flags, CARRY_FLAG, true);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, false);
+        set_flag(flags, FLAG_CARRY, true);
 
         1
     }

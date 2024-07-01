@@ -27,9 +27,9 @@ impl InstructionTrait for InstructionINC {
 
                 let flags = emulator.accumulator_and_flags.low_mut();
 
-                set_flag(flags, ZERO_FLAG, result == 0);
-                set_flag(flags, SUBTRACT_FLAG, false);
-                set_flag(flags, HALF_CARRY_FLAG, result > 0b0111);
+                set_flag(flags, FLAG_ZERO, result == 0);
+                set_flag(flags, FLAG_SUBTRACT, false);
+                set_flag(flags, FLAG_HALF_CARRY, result > 0b0111);
 
                 reg.set(emulator, result);
 

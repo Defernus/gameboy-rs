@@ -84,13 +84,17 @@ impl InstructionTrait for InstructionLD {
                 2
             }
             Self::A_AtHLI => {
-                emulator.accumulator_and_flags.set_high(emulator.register_hl.at(emulator));
+                emulator
+                    .accumulator_and_flags
+                    .set_high(emulator.register_hl.at(emulator));
                 emulator.register_hl.increment();
 
                 2
             }
             Self::A_AtHLD => {
-                emulator.accumulator_and_flags.set_high(emulator.register_hl.at(emulator));
+                emulator
+                    .accumulator_and_flags
+                    .set_high(emulator.register_hl.at(emulator));
                 emulator.register_hl.decrement();
 
                 2
@@ -100,7 +104,9 @@ impl InstructionTrait for InstructionLD {
                 let address = to.get(emulator);
 
                 emulator.memory.set(address, (value & 0xFF) as u8);
-                emulator.memory.set(address.wrapping_add(1), (value >> 8) as u8);
+                emulator
+                    .memory
+                    .set(address.wrapping_add(1), (value >> 8) as u8);
 
                 5
             }

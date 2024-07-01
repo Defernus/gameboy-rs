@@ -19,7 +19,7 @@ impl InstructionTrait for InstructionCALL {
                 6
             }
             Self::CC_N16(condition, address) => {
-                if condition.read(emulator) {
+                if condition.get(emulator) {
                     exec_call(emulator, address);
                     6
                 } else {

@@ -71,8 +71,8 @@ impl InstructionTrait for InstructionADD {
 
                 let flags = emulator.accumulator_and_flags.low_mut();
 
-                set_flag(flags, ZERO_FLAG, false);
-                set_flag(flags, SUBTRACT_FLAG, false);
+                set_flag(flags, FLAG_ZERO, false);
+                set_flag(flags, FLAG_SUBTRACT, false);
 
                 update_carry_flags_add_u8(
                     flags,
@@ -95,8 +95,8 @@ fn exec_add_to_a(emulator: &mut Emulator, value: u8) {
 
     let flags = emulator.accumulator_and_flags.low_mut();
 
-    set_flag(flags, ZERO_FLAG, result == 0);
-    set_flag(flags, SUBTRACT_FLAG, false);
+    set_flag(flags, FLAG_ZERO, result == 0);
+    set_flag(flags, FLAG_SUBTRACT, false);
     update_carry_flags_add_u8(flags, register_a, value);
 }
 
@@ -107,7 +107,7 @@ fn exec_add_to_hl(emulator: &mut Emulator, value: u16) {
 
     let flags = emulator.accumulator_and_flags.low_mut();
 
-    set_flag(flags, SUBTRACT_FLAG, false);
+    set_flag(flags, FLAG_SUBTRACT, false);
 
     update_carry_flags_add_u16(flags, register_hl, value);
 }

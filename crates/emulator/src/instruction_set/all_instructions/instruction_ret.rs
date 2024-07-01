@@ -16,7 +16,7 @@ impl InstructionTrait for InstructionRET {
         let mut cycles = 4;
 
         if let Some(cc) = self.0 {
-            if !cc.read(emulator) {
+            if !cc.get(emulator) {
                 return 2;
             }
 

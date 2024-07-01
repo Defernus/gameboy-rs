@@ -25,7 +25,7 @@ impl InstructionTrait for InstructionSUB {
             Self::A_N8(arg) => (arg.get(emulator), 2),
         };
 
-        let register_a = emulator.accumulator_and_flags.low();
+        let register_a = emulator.accumulator_and_flags.high();
 
         let result = register_a.wrapping_sub(input_value);
 
@@ -33,12 +33,12 @@ impl InstructionTrait for InstructionSUB {
         let carry = register_a < input_value;
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, ZERO_FLAG, result == 0);
-        set_flag(flags, SUBTRACT_FLAG, true);
-        set_flag(flags, HALF_CARRY_FLAG, half_carry);
-        set_flag(flags, CARRY_FLAG, carry);
+        set_flag(flags, FLAG_ZERO, result == 0);
+        set_flag(flags, FLAG_SUBTRACT, true);
+        set_flag(flags, FLAG_HALF_CARRY, half_carry);
+        set_flag(flags, FLAG_CARRY, carry);
 
-        emulator.accumulator_and_flags.set_low(result);
+        emulator.accumulator_and_flags.set_high(result);
 
         cycles
     }

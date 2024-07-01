@@ -25,15 +25,17 @@ impl InstructionTrait for InstructionOR {
             Self::A_N8(arg) => (arg.get(emulator), 2),
         };
 
-        let register_a = emulator.accumulator_and_flags.low_mut();
+        let register_a = emulator.accumulator_and_flags.high_mut();
 
         let result = *register_a | input_value;
         *register_a = result;
 
-        set_flag(register_a, ZERO_FLAG, result == 0);
-        set_flag(register_a, SUBTRACT_FLAG, false);
-        set_flag(register_a, HALF_CARRY_FLAG, false);
-        set_flag(register_a, CARRY_FLAG, false);
+        let flags = emulator.accumulator_and_flags.low_mut();
+
+        set_flag(flags, FLAG_ZERO, result == 0);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, false);
+        set_flag(flags, FLAG_CARRY, false);
 
         cycles
     }

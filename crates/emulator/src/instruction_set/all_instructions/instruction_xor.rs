@@ -25,19 +25,37 @@ impl InstructionTrait for InstructionXOR {
             Self::A_N8(arg) => (arg.get(emulator), 2),
         };
 
-        let register_a = emulator.accumulator_and_flags.low();
+        let register_a = emulator.accumulator_and_flags.high();
 
         let result = register_a ^ input_value;
 
         let flags = emulator.accumulator_and_flags.low_mut();
 
-        set_flag(flags, ZERO_FLAG, result == 0);
-        set_flag(flags, SUBTRACT_FLAG, false);
-        set_flag(flags, HALF_CARRY_FLAG, false);
-        set_flag(flags, CARRY_FLAG, false);
+        set_flag(flags, FLAG_ZERO, result == 0);
+        set_flag(flags, FLAG_SUBTRACT, false);
+        set_flag(flags, FLAG_HALF_CARRY, false);
+        set_flag(flags, FLAG_CARRY, false);
 
-        emulator.accumulator_and_flags.set_low(result);
+        emulator.accumulator_and_flags.set_high(result);
 
         cycles
     }
+}
+
+#[test]
+fn test_xor_flags() {
+    let mut emulator = Emulator::default();
+
+    // reset flags
+    emulator.accumulator_and_flags.set_low(0x00);
+    // reset A register
+    emulator.accumulator_and_flags.set_high(0x00);
+
+    InstructionXOR::A_R8(ArgumentR8::A).execute(&mut emulator);
+
+    // 0x00 ^ 0x00 = 0x00
+    assert_eq!(emulator.accumulator_and_flags.high(), 0x00);
+
+    // Z flag should be set, all other flags should be reset
+    assert_eq!(emulator.accumulator_and_flags.low(), 0b1000_0000);
 }

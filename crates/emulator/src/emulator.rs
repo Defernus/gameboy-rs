@@ -42,12 +42,17 @@ impl Emulator {
         }
     }
 
-    pub fn read_next_instruction(&mut self) -> Option<Instruction> {
+    /// Try to read bytes at the current program counter and interpret them as an instruction.
+    ///
+    /// If the data is valid, the program counter will be incremented by the size of the instruction.
+    ///
+    /// Returns instruction and its size in bytes.
+    pub fn read_next_instruction(&mut self) -> Option<(Instruction, u8)> {
         let (instruction, size) = Instruction::read(&self.memory, self.program_counter)?;
 
-        self.program_counter = self.program_counter.0.wrapping_add(size).into();
+        self.program_counter = self.program_counter.0.wrapping_add(size as u16).into();
 
-        Some(instruction)
+        Some((instruction, size))
     }
 
     pub fn handle_instruction(&mut self, instruction: Instruction) {
@@ -67,8 +72,8 @@ impl Emulator {
         }
     }
 
-    pub fn handle_next_instruction(&mut self) {
-        let instruction = self.read_next_instruction().unwrap_or_else(|| {
+    pub fn handle_next_instruction(&mut self) -> (Instruction, u8) {
+        let (instruction, size) = self.read_next_instruction().unwrap_or_else(|| {
             panic!(
                 "Failed to read next instruction, opcode: {:02X}",
                 self.memory.get(self.program_counter.into())
@@ -76,5 +81,14 @@ impl Emulator {
         });
 
         self.handle_instruction(instruction);
+
+        (instruction, size)
+    }
+
+    /// Get 4th byte of LCDC register (BG and Window Tiles flag)
+    pub fn get_bg_win_tiles(&self) -> bool {
+        let lcdc = self.memory.get(MEMORY_ADDRESS_REGISTER_LCDC);
+
+        lcdc & LCDC_BW_WINDOW_TILES_MASK == LCDC_BW_WINDOW_TILES_MASK
     }
 }
