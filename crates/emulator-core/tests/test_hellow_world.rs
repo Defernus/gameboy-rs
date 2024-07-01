@@ -1,4 +1,4 @@
-use emulator::*;
+use emulator_core::*;
 
 #[test]
 fn test_hello_world() {
