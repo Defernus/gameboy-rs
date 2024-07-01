@@ -38,3 +38,16 @@ impl Emulator {
         result
     }
 }
+
+/// Convert tile map cords to position in the tile map.
+pub fn tile_map_cords_to_position(x: usize, y: usize) -> usize {
+    y * TILE_MAP_WIDTH + x
+}
+
+/// Convert position of the tile in the tile map to its cords.
+pub fn tile_map_position_to_cords(position: usize) -> (usize, usize) {
+    let x = position % TILE_MAP_WIDTH;
+    let y = position / TILE_MAP_WIDTH;
+
+    (x, y)
+}

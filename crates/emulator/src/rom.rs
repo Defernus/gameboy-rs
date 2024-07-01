@@ -33,3 +33,12 @@ impl Rom {
         &self.data[range]
     }
 }
+
+impl<T> From<T> for Rom
+where
+    T: Into<Vec<u8>>,
+{
+    fn from(data: T) -> Self {
+        Self::from_bytes(data.into())
+    }
+}

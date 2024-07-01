@@ -31,8 +31,8 @@ pub struct Emulator {
 }
 
 impl Emulator {
-    pub fn from_rom(rom: Vec<u8>) -> Self {
-        let mut rom = Rom::from_bytes(rom);
+    pub fn from_rom(rom: impl Into<Rom>) -> Self {
+        let mut rom: Rom = rom.into();
         let mut memory = Memory::default();
         memory.load_rom(&mut rom);
 

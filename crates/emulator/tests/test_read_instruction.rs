@@ -1,4 +1,4 @@
-use emulator_core::{ArgumentN16, ArgumentR16, Emulator, Instruction, InstructionLD};
+use emulator::{ArgumentN16, ArgumentR16, Emulator, Instruction, InstructionLD};
 
 #[test]
 fn test_read_instruction() {

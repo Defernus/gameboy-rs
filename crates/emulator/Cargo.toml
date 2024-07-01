@@ -1,5 +1,5 @@
 [package]
-name = "emulator-core"
+name = "emulator"
 version = { workspace = true }
 authors = { workspace = true }
 license = { workspace = true }

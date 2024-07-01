@@ -1,13 +1,15 @@
 use crate::*;
 
+/// Width of the tile in pixels.
 pub const TILE_WIDTH: usize = 8;
+/// Height of the tile in pixels.
 pub const TILE_HEIGHT: usize = 8;
 
-/// Pixel size of a tile in bits.
-pub const TILE_PIXEL_SIZE: usize = 2;
+pub const PIXEL_SIZE_BITS: usize = 2;
+pub const PIXELS_PER_BYTE: usize = 8 / PIXEL_SIZE_BITS;
 pub const TILE_PIXEL_COUNT: usize = TILE_WIDTH * TILE_HEIGHT;
-/// Size of a tile in bytes.
-pub const TILE_SIZE: usize = TILE_PIXEL_COUNT * TILE_PIXEL_SIZE / 8;
+/// Size of a tile in **bytes**.
+pub const TILE_SIZE: usize = TILE_PIXEL_COUNT / PIXELS_PER_BYTE;
 
 /// Represents tile data of 8x8 pixels.
 ///
@@ -69,4 +71,35 @@ impl Tile {
 
         Self::read(emulator, address)
     }
+
+    pub fn get_pixel(&self, x: usize, y: usize) -> PalletIndex {
+        assert!(x < TILE_WIDTH, "X coordinate out of bounds: {}", x);
+        assert!(y < TILE_HEIGHT, "Y coordinate out of bounds: {}", y);
+
+        let column = x / PIXELS_PER_BYTE;
+
+        let byte = self.data[y * TILE_WIDTH / PIXELS_PER_BYTE + column];
+
+        let pixel_offset = x % PIXELS_PER_BYTE;
+
+        let pixel_data = byte >> (pixel_offset * PIXEL_SIZE_BITS) & 0b11;
+
+        match pixel_data {
+            0 => PalletIndex::I0,
+            1 => PalletIndex::I1,
+            2 => PalletIndex::I2,
+            3 => PalletIndex::I3,
+            _ => unreachable!("Invalid pixel data: {}", pixel_data),
+        }
+    }
+}
+
+/// Color index in the pallet.
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Hash)]
+pub enum PalletIndex {
+    I0,
+    I1,
+    I2,
+    I3,
 }
