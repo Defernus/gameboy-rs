@@ -1,5 +1,8 @@
 use crate::*;
 
+const HIGH_REGISTER: usize = 1;
+const LOW_REGISTER: usize = 0;
+
 /// A 16-bit register.
 ///
 /// Divided into two 8-bit registers: high and low.
@@ -28,22 +31,22 @@ impl Register {
 
     #[inline(always)]
     pub fn low(self) -> u8 {
-        self.0[1]
+        self.0[LOW_REGISTER]
     }
 
     #[inline(always)]
     pub fn set_low(&mut self, value: u8) {
-        self.0[1] = value;
+        self.0[LOW_REGISTER] = value;
     }
 
     #[inline(always)]
     pub fn high(self) -> u8 {
-        self.0[0]
+        self.0[HIGH_REGISTER]
     }
 
     #[inline(always)]
     pub fn set_high(&mut self, value: u8) {
-        self.0[0] = value;
+        self.0[HIGH_REGISTER] = value;
     }
 
     #[inline(always)]
@@ -69,12 +72,12 @@ impl Register {
 
     #[inline(always)]
     pub fn high_mut(&mut self) -> &mut u8 {
-        &mut self.0[0]
+        &mut self.0[HIGH_REGISTER]
     }
 
     #[inline(always)]
     pub fn low_mut(&mut self) -> &mut u8 {
-        &mut self.0[1]
+        &mut self.0[LOW_REGISTER]
     }
 
     #[inline(always)]

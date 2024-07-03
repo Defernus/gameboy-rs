@@ -209,6 +209,21 @@ impl Memory {
         u16::from_le_bytes([byte0, byte1])
     }
 
+    /// Read a u8 from the memory at the current program counter and advance the program counter by 1.
+    pub fn read_u8_at_pc(&self, pc: &mut ProgramCounter) -> u8 {
+        self.get(pc.post_increment(1))
+    }
+
+    /// Read an i8 from the memory at the current program counter and advance the program counter by 1.
+    pub fn read_i8_at_pc(&self, pc: &mut ProgramCounter) -> i8 {
+        self.get_i8(pc.post_increment(1))
+    }
+
+    /// Read a u16 from the memory at the current program counter and advance the program counter by 2.
+    pub fn read_u16_at_pc(&self, pc: &mut ProgramCounter) -> u16 {
+        self.get_u16(pc.post_increment(2))
+    }
+
     #[inline(always)]
     pub fn get_mut(&mut self, address: u16) -> &mut u8 {
         let index = address as usize;
@@ -237,7 +252,11 @@ impl Memory {
         }
 
         if MEMORY_RANGE_ECHO_RAM.contains(&index) {
-            return &mut self.work_ram_0[index - MEMORY_RANGE_ECHO_RAM.start];
+            let index = index - MEMORY_RANGE_ECHO_RAM.start;
+            if index < MEMORY_SIZE_WORK_RAM_0 {
+                return &mut self.work_ram_0[index];
+            }
+            return &mut self.work_ram_1[index - MEMORY_SIZE_WORK_RAM_0];
         }
 
         if MEMORY_RANGE_OAM.contains(&index) {

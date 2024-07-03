@@ -32,12 +32,12 @@ impl InstructionTrait for InstructionADC {
 
         let result = register_a.wrapping_add(input_value).wrapping_add(carry);
 
-        let half_carry = (register_a & 0xFF) + (input_value & 0xFF) + carry > 0xF;
+        let half_carry = (register_a & 0xF) + (input_value & 0xF) + carry > 0xF;
         let carry = (register_a as u16) + (input_value as u16) + (carry as u16) > 0xFF;
 
         let flags = emulator.accumulator_and_flags.low_mut();
         set_flag(flags, FLAG_ZERO, result == 0);
-        invert_flag(flags, FLAG_SUBTRACT);
+        set_flag(flags, FLAG_SUBTRACT, false);
         set_flag(flags, FLAG_HALF_CARRY, half_carry);
         set_flag(flags, FLAG_CARRY, carry);
 

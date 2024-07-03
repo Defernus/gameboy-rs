@@ -20,9 +20,9 @@ pub enum InstructionAND {
 impl InstructionTrait for InstructionAND {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         let (value, cycles) = match self {
-            InstructionAND::A_R8(arg @ ArgumentR8::AtHL) => (arg.get(emulator), 3),
-            InstructionAND::A_R8(arg) => (arg.get(emulator), 2),
-            InstructionAND::A_N8(arg) => (arg.get(emulator), 3),
+            InstructionAND::A_R8(arg @ ArgumentR8::AtHL) => (arg.get(emulator), 2),
+            InstructionAND::A_R8(arg) => (arg.get(emulator), 1),
+            InstructionAND::A_N8(arg) => (arg.get(emulator), 2),
         };
 
         let register_a = emulator.accumulator_and_flags.high();

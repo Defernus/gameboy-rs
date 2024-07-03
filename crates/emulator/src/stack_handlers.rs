@@ -4,7 +4,7 @@ impl Emulator {
     /// Push value to stack at current SP and decrement SP by size of value.
     /// (e.g. `2` for `u16`, `1` for `u8`)
     pub fn push_to_stack<T: StackValue>(&mut self, value: T) {
-        for byte in value.to_bytes() {
+        for byte in value.to_bytes().into_iter().rev() {
             self.stack_pointer.decrement();
             self.memory.set(self.stack_pointer.into(), byte);
         }

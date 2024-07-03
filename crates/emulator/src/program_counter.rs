@@ -10,6 +10,12 @@ impl ProgramCounter {
     pub fn advance(&mut self, value: u16) {
         self.0 = self.0.wrapping_add(value);
     }
+
+    pub fn post_increment(&mut self, value: u16) -> u16 {
+        let result = self.0;
+        self.advance(value);
+        result
+    }
 }
 
 impl Default for ProgramCounter {

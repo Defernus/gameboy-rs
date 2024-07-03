@@ -4,6 +4,8 @@ use crate::*;
 /// register/value/memory on the right to location on the left.
 ///
 /// Example: `LD B, C` copies the value in register `C` to register `B`.
+///
+/// Flags not affected except for `HL_SP_E8` (Check variant documentation for details).
 #[allow(non_camel_case_types)]
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum InstructionLD {
@@ -20,6 +22,16 @@ pub enum InstructionLD {
     A_AtHLD,
     /// Store SP & $FF at address n16 and SP >> 8 at address n16 + 1.
     AtN16_SP(ArgumentN16),
+    /// Store SP + e8 at HL.
+    ///
+    /// Flags:
+    ///
+    /// | Flag | Value |
+    /// |------|-------|
+    /// | Z    | 0     |
+    /// | N    | 0     |
+    /// | H    | Set if overflow from bit 3. |
+    /// | C    | Set if overflow from bit 7. |
     HL_SP_E8(ArgumentE8),
     SP_HL,
 }
@@ -111,7 +123,11 @@ impl InstructionTrait for InstructionLD {
                 5
             }
             Self::HL_SP_E8(offset) => {
-                let value = offset.apply_offset(emulator.stack_pointer.into());
+                let flags = emulator.accumulator_and_flags.low_mut();
+                let value = offset.apply_offset_with_flags(emulator.stack_pointer.into(), flags);
+
+                set_flag(flags, FLAG_ZERO, false);
+                set_flag(flags, FLAG_SUBTRACT, false);
 
                 *emulator.register_hl.as_u16_mut() = value;
 

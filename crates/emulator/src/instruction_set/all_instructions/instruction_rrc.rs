@@ -18,7 +18,7 @@ impl InstructionTrait for InstructionRRC {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         let Self(reg) = *self;
 
-        let result = rotate_register_right_carry(emulator, reg);
+        let result = rotate_register_right(emulator, reg);
 
         let flags = emulator.accumulator_and_flags.low_mut();
         set_flag(flags, FLAG_ZERO, result == 0);

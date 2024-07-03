@@ -47,24 +47,9 @@ async fn main() {
 fn debug_next_instruction(emulator: &mut Emulator, step: usize) {
     print!("St: {:09} ", step);
 
-    let instruction_address = emulator.program_counter.0;
-    print!("Op {:02X} ", emulator.memory.get(instruction_address));
+    print!("Op {:02X} ", emulator.instruction_register);
 
-    let (instruction, size) = emulator.handle_next_instruction();
-
-    match size {
-        1 => print!("       "),
-        2 => {
-            print!("[{:02X}]   ", emulator.memory.get(instruction_address + 1));
-        }
-        3 => {
-            print!(
-                "[{:04X}] ",
-                emulator.memory.get_u16(instruction_address + 1)
-            );
-        }
-        _ => panic!("Invalid instruction size: {}", size),
-    }
+    let instruction = emulator.handle_next_instruction();
 
     print!("Cy {} ", emulator.cycles);
     print!("PC {:04X} ", emulator.program_counter.0);

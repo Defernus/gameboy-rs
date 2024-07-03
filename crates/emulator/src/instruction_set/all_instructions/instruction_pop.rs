@@ -17,6 +17,9 @@ impl InstructionTrait for InstructionPOP {
         let value = emulator.pop_from_stack();
 
         reg.set(emulator, value);
+        if reg == ArgumentStkR16::AF {
+            *emulator.accumulator_and_flags.low_mut() &= FLAGS_MASK;
+        }
 
         3
     }

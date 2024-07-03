@@ -23,13 +23,16 @@ impl InstructionTrait for InstructionINC {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         match self {
             Self::R8(reg) => {
-                let result = reg.get(emulator).wrapping_add(1);
+                let prev_value = reg.get(emulator);
+                let result = prev_value.wrapping_add(1);
 
                 let flags = emulator.accumulator_and_flags.low_mut();
 
+                let half_carry = (prev_value & 0x0F) + 1 > 0x0F;
+
                 set_flag(flags, FLAG_ZERO, result == 0);
                 set_flag(flags, FLAG_SUBTRACT, false);
-                set_flag(flags, FLAG_HALF_CARRY, result > 0b0111);
+                set_flag(flags, FLAG_HALF_CARRY, half_carry);
 
                 reg.set(emulator, result);
 

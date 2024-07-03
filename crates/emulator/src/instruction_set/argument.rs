@@ -238,8 +238,28 @@ impl ArgumentE8 {
         if self.0 >= 0 {
             value.wrapping_add(self.0 as u16)
         } else {
-            value.wrapping_sub((-self.0) as u16)
+            let offset = -(self.0 as i16);
+            let offset = offset as u16;
+            value.wrapping_sub(offset)
         }
+    }
+
+    pub fn apply_offset_with_flags(self, value: u16, flags: &mut u8) -> u16 {
+        let unsigned_delta = self.as_u8() as u16;
+
+        let carry = (value & 0xFF) + unsigned_delta > 0xFF;
+        let half_carry = (value & 0x0F) + (unsigned_delta & 0x0F) > 0x0F;
+
+        set_flag(flags, FLAG_HALF_CARRY, half_carry);
+        set_flag(flags, FLAG_CARRY, carry);
+
+        self.apply_offset(value)
+    }
+
+    /// Read value as u8 instead of i8
+    pub fn as_u8(self) -> u8 {
+        // Safety: i8 and u8 have the same size and alignment
+        unsafe { std::mem::transmute(self.0) }
     }
 }
 

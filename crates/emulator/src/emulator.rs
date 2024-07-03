@@ -25,9 +25,13 @@ pub struct Emulator {
     pub ime_flag: bool,
 
     /// Number of cycles that have passed since the CPU was started
-    pub cycles: u64,
+    pub cycles: usize,
 
     pub is_in_low_power_mode: bool,
+
+    /// **IR** register. Internal cpu register used to store the opcode of the
+    /// next instruction.
+    pub instruction_register: u8,
 }
 
 impl Emulator {
@@ -47,14 +51,17 @@ impl Emulator {
     /// If the data is valid, the program counter will be incremented by the size of the instruction.
     ///
     /// Returns instruction and its size in bytes.
-    pub fn read_next_instruction(&mut self) -> Option<(Instruction, u8)> {
-        let (instruction, size) = Instruction::read(&self.memory, self.program_counter)?;
+    pub fn read_next_instruction(&mut self) -> Option<Instruction> {
+        let instruction = Instruction::read(
+            self.instruction_register,
+            &self.memory,
+            &mut self.program_counter,
+        )?;
 
-        self.program_counter = self.program_counter.0.wrapping_add(size as u16).into();
-
-        Some((instruction, size))
+        Some(instruction)
     }
 
+    /// Handle given instruction without fetch and pc increment
     pub fn handle_instruction(&mut self, instruction: Instruction) {
         let set_ime = self.delayed_ime_set;
 
@@ -64,7 +71,7 @@ impl Emulator {
             panic!("Instruction {:?} failed", instruction);
         }
 
-        self.cycles += cycles as u64;
+        self.cycles += cycles as usize;
 
         if set_ime {
             self.ime_flag = true;
@@ -72,8 +79,10 @@ impl Emulator {
         }
     }
 
-    pub fn handle_next_instruction(&mut self) -> (Instruction, u8) {
-        let (instruction, size) = self.read_next_instruction().unwrap_or_else(|| {
+    /// Handle instruction from instruction register(IR) without fetch and pc
+    /// increment
+    pub fn handle_next_instruction_pre_fetch(&mut self) -> Instruction {
+        let instruction = self.read_next_instruction().unwrap_or_else(|| {
             panic!(
                 "Failed to read next instruction, opcode: {:02X}",
                 self.memory.get(self.program_counter.into())
@@ -82,7 +91,25 @@ impl Emulator {
 
         self.handle_instruction(instruction);
 
-        (instruction, size)
+        instruction
+    }
+
+    /// Handle instruction from instruction register(IR) and fetch next
+    /// instruction opcode
+    ///
+    /// Returns the instruction that was executed
+    pub fn handle_next_instruction(&mut self) -> Instruction {
+        let instruction = self.handle_next_instruction_pre_fetch();
+
+        // fetch next instruction opcode
+        self.fetch_opcode();
+
+        instruction
+    }
+
+    /// Fetch next instruction opcode, store it in the IR register and increment the PC
+    pub fn fetch_opcode(&mut self) {
+        self.instruction_register = self.memory.read_u8_at_pc(&mut self.program_counter);
     }
 
     /// Get 4th byte of LCDC register (BG and Window Tiles flag)

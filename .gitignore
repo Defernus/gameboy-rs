@@ -8,6 +8,8 @@ node_modules
 .idea
 .env
 
+/cpu-test-data
+
 .DS_Store
 
 /logs.log

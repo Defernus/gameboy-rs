@@ -15,30 +15,43 @@ pub struct InstructionDAA;
 
 impl InstructionTrait for InstructionDAA {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
-        let mut register_a = emulator.accumulator_and_flags.high();
+        let mut value = emulator.accumulator_and_flags.high(); // B2 (178)
 
-        let flags = emulator.accumulator_and_flags.low();
-        let half_carry = get_flag(flags, FLAG_HALF_CARRY);
-        let carry = get_flag(flags, FLAG_CARRY);
-
-        if register_a & 0x0F > 9 || half_carry {
-            register_a = register_a.wrapping_add(0x06);
-        }
+        let flags = emulator.accumulator_and_flags.low(); // 0111
+        let half_carry = get_flag(flags, FLAG_HALF_CARRY); // 1
+        let carry = get_flag(flags, FLAG_CARRY); // 1
+        let subtract = get_flag(flags, FLAG_SUBTRACT); // 1
 
         let mut adjust = false;
 
-        if register_a & 0xF0 > 0x90 || carry {
-            adjust = true;
-
-            register_a = register_a.wrapping_add(0x60);
-        };
+        if subtract {
+            // after a subtraction, only adjust if (half-)carry occurred
+            if carry {
+                value = value.wrapping_sub(0x60);
+            }
+            if half_carry {
+                value = value.wrapping_sub(0x6);
+            }
+        } else {
+            // after an addition, adjust if (half-)carry occurred or if result is out of bounds
+            if carry || value > 0x99 {
+                value = value.wrapping_add(0x60);
+                adjust = true;
+            }
+            if half_carry || (value & 0x0f) > 0x09 {
+                value = value.wrapping_add(0x6);
+            }
+        }
 
         let flags = emulator.accumulator_and_flags.low_mut();
-        set_flag(flags, FLAG_ZERO, register_a == 0);
-        set_flag(flags, FLAG_HALF_CARRY, false);
-        set_flag(flags, FLAG_CARRY, adjust);
 
-        emulator.accumulator_and_flags.set_high(register_a);
+        set_flag(flags, FLAG_ZERO, value == 0);
+        set_flag(flags, FLAG_HALF_CARRY, false);
+        if adjust {
+            set_flag(flags, FLAG_CARRY, true);
+        }
+
+        emulator.accumulator_and_flags.set_high(value);
 
         1
     }

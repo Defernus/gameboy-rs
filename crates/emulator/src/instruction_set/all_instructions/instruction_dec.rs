@@ -23,9 +23,10 @@ impl InstructionTrait for InstructionDEC {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         match self {
             Self::R8(reg) => {
-                let half_carry = reg.get(emulator) & 0b0001_0000 == 0;
+                let prev_value = reg.get(emulator);
+                let result = prev_value.wrapping_sub(1);
 
-                let result = reg.get(emulator).wrapping_sub(1);
+                let half_carry = (prev_value & 0x0F) == 0;
 
                 let flags = emulator.accumulator_and_flags.low_mut();
 

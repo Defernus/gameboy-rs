@@ -19,7 +19,7 @@ impl InstructionTrait for InstructionCPL {
 
         let flags = emulator.accumulator_and_flags.low_mut();
 
-        set_flag(flags, FLAG_ZERO, true);
+        set_flag(flags, FLAG_HALF_CARRY, true);
         set_flag(flags, FLAG_SUBTRACT, true);
 
         1
