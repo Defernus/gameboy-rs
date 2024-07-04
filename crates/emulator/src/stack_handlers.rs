@@ -6,7 +6,7 @@ impl Emulator {
     pub fn push_to_stack<T: StackValue>(&mut self, value: T) {
         for byte in value.to_bytes().into_iter().rev() {
             self.stack_pointer.decrement();
-            self.memory.set(self.stack_pointer.into(), byte);
+            self.set(self.stack_pointer.into(), byte);
         }
     }
 
@@ -17,7 +17,7 @@ impl Emulator {
 
         let mut bytes = Vec::with_capacity(size);
         for _ in 0..size {
-            bytes.push(self.memory.get(self.stack_pointer.into()));
+            bytes.push(self.get(self.stack_pointer.into()));
             self.stack_pointer.increment();
         }
 

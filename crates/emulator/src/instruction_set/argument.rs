@@ -41,7 +41,7 @@ impl ArgumentWrite for ArgumentR8 {
             Self::E => emulator.register_de.low_mut(),
             Self::H => emulator.register_hl.high_mut(),
             Self::L => emulator.register_hl.low_mut(),
-            Self::AtHL => emulator.memory.get_mut(emulator.register_hl.as_u16()),
+            Self::AtHL => emulator.get_mut(emulator.register_hl.as_u16()),
             Self::A => emulator.accumulator_and_flags.high_mut(),
         }
     }
@@ -59,7 +59,7 @@ impl ArgumentRead for ArgumentR8 {
             Self::E => emulator.register_de.low(),
             Self::H => emulator.register_hl.high(),
             Self::L => emulator.register_hl.low(),
-            Self::AtHL => emulator.memory.get(emulator.register_hl.as_u16()),
+            Self::AtHL => emulator.get(emulator.register_hl.as_u16()),
             Self::A => emulator.accumulator_and_flags.high(),
         }
     }
@@ -117,12 +117,12 @@ impl ArgumentRead for ArgumentR16 {
 impl MemoryAccess for ArgumentR16 {
     /// Returns the value of the memory at the address in the 16-bit register.
     fn at(&self, emulator: &Emulator) -> u8 {
-        emulator.memory.get(self.get(emulator))
+        emulator.get(self.get(emulator))
     }
 
     /// Returns a mutable reference to the memory at the address in the 16-bit register.
     fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
-        emulator.memory.get_mut(self.get(emulator))
+        emulator.get_mut(self.get(emulator))
     }
 }
 
@@ -178,12 +178,12 @@ impl ArgumentRead for ArgumentStkR16 {
 impl MemoryAccess for ArgumentStkR16 {
     /// Returns the value of the memory at the address in the 16-bit register.
     fn at(&self, emulator: &Emulator) -> u8 {
-        emulator.memory.get(self.get(emulator))
+        emulator.get(self.get(emulator))
     }
 
     /// Returns a mutable reference to the memory at the address in the 16-bit register.
     fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
-        emulator.memory.get_mut(self.get(emulator))
+        emulator.get_mut(self.get(emulator))
     }
 }
 
@@ -216,12 +216,12 @@ impl ArgumentRead for ArgumentN16 {
 impl MemoryAccess for ArgumentN16 {
     /// Returns the value of the memory at the address in the 16-bit integer constant.
     fn at(&self, emulator: &Emulator) -> u8 {
-        emulator.memory.get(self.get(emulator))
+        emulator.get(self.get(emulator))
     }
 
     /// Returns a mutable reference to the memory at the address in the 16-bit integer constant.
     fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
-        emulator.memory.get_mut(self.get(emulator))
+        emulator.get_mut(self.get(emulator))
     }
 }
 

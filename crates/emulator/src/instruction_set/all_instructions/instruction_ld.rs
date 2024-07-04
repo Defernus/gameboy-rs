@@ -115,10 +115,8 @@ impl InstructionTrait for InstructionLD {
                 let value: u16 = emulator.stack_pointer.into();
                 let address = to.get(emulator);
 
-                emulator.memory.set(address, (value & 0xFF) as u8);
-                emulator
-                    .memory
-                    .set(address.wrapping_add(1), (value >> 8) as u8);
+                emulator.set(address, (value & 0xFF) as u8);
+                emulator.set(address.wrapping_add(1), (value >> 8) as u8);
 
                 5
             }

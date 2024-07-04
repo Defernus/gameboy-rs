@@ -87,58 +87,7 @@ pub const MEMORY_ADDRESS_REGISTER_LCDC: u16 = 0xFF40;
 pub const LCDC_BW_WINDOW_TILES_MASK: u8 = 0b0001_0000;
 pub const LCDC_BW_TILE_MAP_MASK: u8 = 0b0000_1000;
 
-pub struct Memory {
-    pub rom_bank_00: Box<[u8; MEMORY_SIZE_ROM_BANK_00]>,
-    pub rom_bank_01: Box<[u8; MEMORY_SIZE_ROM_BANK_01]>,
-    pub vram: Box<[u8; MEMORY_SIZE_VRAM]>,
-    pub external_ram: Box<[u8; MEMORY_SIZE_EXTERNAL_RAM]>,
-    pub work_ram_0: Box<[u8; MEMORY_SIZE_WORK_RAM_0]>,
-    pub work_ram_1: Box<[u8; MEMORY_SIZE_WORK_RAM_1]>,
-    pub oam: Box<[u8; MEMORY_SIZE_OAM]>,
-    pub not_usable: Box<[u8; MEMORY_SIZE_NOT_USABLE]>,
-    pub io_registers: Box<[u8; MEMORY_SIZE_IO_REGISTERS]>,
-    pub high_ram: Box<[u8; MEMORY_SIZE_HIGH_RAM]>,
-    pub interrupt_enable_register: u8,
-}
-
-impl Default for Memory {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Memory {
-    #[inline(always)]
-    pub fn new() -> Self {
-        Self {
-            rom_bank_00: Box::new([0; MEMORY_SIZE_ROM_BANK_00]),
-            rom_bank_01: Box::new([0; MEMORY_SIZE_ROM_BANK_01]),
-            vram: Box::new([0; MEMORY_SIZE_VRAM]),
-            external_ram: Box::new([0; MEMORY_SIZE_EXTERNAL_RAM]),
-            work_ram_0: Box::new([0; MEMORY_SIZE_WORK_RAM_0]),
-            work_ram_1: Box::new([0; MEMORY_SIZE_WORK_RAM_1]),
-            oam: Box::new([0; MEMORY_SIZE_OAM]),
-            not_usable: Box::new([0; MEMORY_SIZE_NOT_USABLE]),
-            io_registers: Box::new([0; MEMORY_SIZE_IO_REGISTERS]),
-            high_ram: Box::new([0; MEMORY_SIZE_HIGH_RAM]),
-            interrupt_enable_register: 0,
-        }
-    }
-
-    pub fn load_rom(&mut self, rom: &mut Rom) {
-        self.rom_bank_00 = Box::new(
-            rom.read_range(MEMORY_RANGE_ROM_BANK_00)
-                .try_into()
-                .expect("Invalid ROM bank 00 size"),
-        );
-
-        self.rom_bank_01 = Box::new(
-            rom.read_range(MEMORY_RANGE_ROM_BANK_01)
-                .try_into()
-                .expect("Invalid ROM bank 01 size"),
-        );
-    }
-
+impl Emulator {
     #[inline(always)]
     pub fn get(&self, address: u16) -> u8 {
         let index = address as usize;
@@ -210,18 +159,21 @@ impl Memory {
     }
 
     /// Read a u8 from the memory at the current program counter and advance the program counter by 1.
-    pub fn read_u8_at_pc(&self, pc: &mut ProgramCounter) -> u8 {
-        self.get(pc.post_increment(1))
+    pub fn read_u8_at_pc(&mut self) -> u8 {
+        let address = self.program_counter.post_increment(1);
+        self.get(address)
     }
 
     /// Read an i8 from the memory at the current program counter and advance the program counter by 1.
-    pub fn read_i8_at_pc(&self, pc: &mut ProgramCounter) -> i8 {
-        self.get_i8(pc.post_increment(1))
+    pub fn read_i8_at_pc(&mut self) -> i8 {
+        let address = self.program_counter.post_increment(1);
+        self.get_i8(address)
     }
 
     /// Read a u16 from the memory at the current program counter and advance the program counter by 2.
-    pub fn read_u16_at_pc(&self, pc: &mut ProgramCounter) -> u16 {
-        self.get_u16(pc.post_increment(2))
+    pub fn read_u16_at_pc(&mut self) -> u16 {
+        let address = self.program_counter.post_increment(2);
+        self.get_u16(address)
     }
 
     #[inline(always)]
@@ -295,9 +247,9 @@ pub trait MemoryAccess {
 
 #[test]
 fn test_memory_access_at_region_edges() {
-    let memory = Memory::default();
+    let emulator = Emulator::default();
 
     const ADDRESS: usize = MEMORY_RANGE_ECHO_RAM.start + 4096;
 
-    memory.get(ADDRESS as u16);
+    emulator.get(ADDRESS as u16);
 }

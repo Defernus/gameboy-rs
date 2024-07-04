@@ -1,8 +1,5 @@
-#![allow(non_camel_case_types)]
-
-use enum_dispatch::enum_dispatch;
-
 use crate::*;
+use enum_dispatch::enum_dispatch;
 
 #[enum_dispatch]
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
@@ -80,15 +77,11 @@ macro_rules! bits {
 }
 
 impl Instruction {
-    /// Read instruction from instruction register and memory.
+    /// Read instruction from instruction register and emulator.
     ///
     /// Returns the instruction and the number of bytes read.
-    pub fn read(
-        instruction_register: u8,
-        memory: &Memory,
-        program_counter: &mut ProgramCounter,
-    ) -> Option<Self> {
-        let opcode = instruction_register;
+    pub fn read(emulator: &mut Emulator) -> Option<Self> {
+        let opcode = emulator.instruction_register;
 
         let bits = to_bits(opcode);
 
@@ -100,7 +93,7 @@ impl Instruction {
             // ld r16, n16	0	0	Dest (r16)	0	0	0	1
             bits![0, 0, b0, b1, 0, 0, 0, 1] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::LD(InstructionLD::R16_N16(r16, ArgumentN16(n16))))
             }
@@ -130,7 +123,7 @@ impl Instruction {
             }
             // ld [n16], sp	0	0	0	0	1	0	0	0
             bits![0, 0, 0, 0, 1, 0, 0, 0] => {
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::LD(InstructionLD::AtN16_SP(ArgumentN16(n16))))
             }
@@ -171,7 +164,7 @@ impl Instruction {
             bits![0, 0, b0, b1, b3, 1, 1, 0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b3);
 
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::LD(InstructionLD::R8_N8(r8, ArgumentN8(n8))))
             }
@@ -195,14 +188,14 @@ impl Instruction {
 
             // jr e8	0	0	0	1	1	0	0	0
             bits![0, 0, 0, 1, 1, 0, 0, 0] => {
-                let e8 = memory.read_i8_at_pc(program_counter);
+                let e8 = emulator.read_i8_at_pc();
 
                 Some(Self::JR(InstructionJR::E8(ArgumentE8(e8))))
             }
             // jr cond, e8	0	0	1	Condition (cond)	0	0	0
             bits![0, 0, 1, b0, b1, 0, 0, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
-                let e8 = memory.read_i8_at_pc(program_counter);
+                let e8 = emulator.read_i8_at_pc();
 
                 Some(Self::JR(InstructionJR::CC_E8(cond, ArgumentE8(e8))))
             }
@@ -278,49 +271,49 @@ impl Instruction {
 
             // add a, n8	1	1	0	0	0	1	1	0
             bits![1, 1, 0, 0, 0, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::ADD(InstructionADD::A_N8(ArgumentN8(n8))))
             }
             // adc a, n8	1	1	0	0	1	1	1	0
             bits![1, 1, 0, 0, 1, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::ADC(InstructionADC::A_N8(ArgumentN8(n8))))
             }
             // sub a, n8	1	1	0	1	0	1	1	0
             bits![1, 1, 0, 1, 0, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::SUB(InstructionSUB::A_N8(ArgumentN8(n8))))
             }
             // sbc a, n8	1	1	0	1	1	1	1	0
             bits![1, 1, 0, 1, 1, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::SBC(InstructionSBC::A_N8(ArgumentN8(n8))))
             }
             // and a, n8	1	1	1	0	0	1	1	0
             bits![1, 1, 1, 0, 0, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::AND(InstructionAND::A_N8(ArgumentN8(n8))))
             }
             // xor a, n8	1	1	1	0	1	1	1	0
             bits![1, 1, 1, 0, 1, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::XOR(InstructionXOR::A_N8(ArgumentN8(n8))))
             }
             // or a, n8	1	1	1	1	0	1	1	0
             bits![1, 1, 1, 1, 0, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::OR(InstructionOR::A_N8(ArgumentN8(n8))))
             }
             // cp a, n8	1	1	1	1	1	1	1	0
             bits![1, 1, 1, 1, 1, 1, 1, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::CP(InstructionCP::A_N8(ArgumentN8(n8))))
             }
@@ -338,13 +331,13 @@ impl Instruction {
             // jp cond, n16	1	1	0	Condition (cond)	0	1	0
             bits![1, 1, 0, b0, b1, 0, 1, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::JP(InstructionJP::CC_N16(cond, ArgumentN16(n16))))
             }
             // jp n16	1	1	0	0	0	0	1	1
             bits![1, 1, 0, 0, 0, 0, 1, 1] => {
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::JP(InstructionJP::N16(ArgumentN16(n16))))
             }
@@ -353,13 +346,13 @@ impl Instruction {
             // call cond, n16	1	1	0	Condition (cond)	1	0	0
             bits![1, 1, 0, b0, b1, 1, 0, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::CALL(InstructionCALL::CC_N16(cond, ArgumentN16(n16))))
             }
             // call n16	1	1	0	0	1	1	0	1
             bits![1, 1, 0, 0, 1, 1, 0, 1] => {
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::CALL(InstructionCALL::N16(ArgumentN16(n16))))
             }
@@ -387,13 +380,13 @@ impl Instruction {
             bits![1, 1, 1, 0, 0, 0, 1, 0] => Some(Self::LDH(InstructionLDH::AtC_A)),
             // ldh [n8], a	1	1	1	0	0	0	0	0
             bits![1, 1, 1, 0, 0, 0, 0, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::LDH(InstructionLDH::AtN8_A(ArgumentN8(n8))))
             }
             // ld [n16], a	1	1	1	0	1	0	1	0
             bits![1, 1, 1, 0, 1, 0, 1, 0] => {
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::LD(InstructionLD::AtN16_A(ArgumentN16(n16))))
             }
@@ -401,26 +394,26 @@ impl Instruction {
             bits![1, 1, 1, 1, 0, 0, 1, 0] => Some(Self::LDH(InstructionLDH::A_AtC)),
             // ldh a, [n8]	1	1	1	1	0	0	0	0
             bits![1, 1, 1, 1, 0, 0, 0, 0] => {
-                let n8 = memory.read_u8_at_pc(program_counter);
+                let n8 = emulator.read_u8_at_pc();
 
                 Some(Self::LDH(InstructionLDH::A_AtN8(ArgumentN8(n8))))
             }
             // ld a, [n16]	1	1	1	1	1	0	1	0
             bits![1, 1, 1, 1, 1, 0, 1, 0] => {
-                let n16 = memory.read_u16_at_pc(program_counter);
+                let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::LD(InstructionLD::A_AtN16(ArgumentN16(n16))))
             }
 
             // add sp, e8	1	1	1	0	1	0	0	0
             bits![1, 1, 1, 0, 1, 0, 0, 0] => {
-                let e8 = memory.read_i8_at_pc(program_counter);
+                let e8 = emulator.read_i8_at_pc();
 
                 Some(Self::ADD(InstructionADD::SP_E8(ArgumentE8(e8))))
             }
             // ld hl, sp + e8	1	1	1	1	1	0	0	0
             bits![1, 1, 1, 1, 1, 0, 0, 0] => {
-                let e8 = memory.read_i8_at_pc(program_counter);
+                let e8 = emulator.read_i8_at_pc();
 
                 Some(Self::LD(InstructionLD::HL_SP_E8(ArgumentE8(e8))))
             }
@@ -434,7 +427,7 @@ impl Instruction {
 
             // Prefix (see block below)	1	1	0	0	1	0	1	1
             bits![1, 1, 0, 0, 1, 0, 1, 1] => {
-                let opcode = memory.read_u8_at_pc(program_counter);
+                let opcode = emulator.read_u8_at_pc();
                 let bits = to_bits(opcode);
 
                 match bits {

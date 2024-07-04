@@ -39,7 +39,7 @@ impl Tile {
         let mut data = [0; TILE_SIZE];
 
         for i in 0..TILE_SIZE {
-            data[i] = emulator.memory.get(address + i as u16);
+            data[i] = emulator.get(address + i as u16);
         }
 
         Self {
@@ -72,32 +72,41 @@ impl Tile {
         Self::read(emulator, address)
     }
 
-    pub fn get_pixel(&self, x: usize, y: usize) -> PalletIndex {
+    pub fn get_pixel(&self, x: usize, y: usize) -> PaletteIndex {
         assert!(x < TILE_WIDTH, "X coordinate out of bounds: {}", x);
         assert!(y < TILE_HEIGHT, "Y coordinate out of bounds: {}", y);
 
-        let column = x / PIXELS_PER_BYTE;
+        let shift = TILE_WIDTH - x - 1;
 
-        let byte = self.data[y * TILE_WIDTH / PIXELS_PER_BYTE + column];
+        let bit0 = self.data[y * 2] >> shift & 0b1 == 1;
+        let bit1 = self.data[y * 2 + 1] >> shift & 0b1 == 1;
 
-        let pixel_offset = x % PIXELS_PER_BYTE;
-
-        let pixel_data = byte >> (pixel_offset * PIXEL_SIZE_BITS) & 0b11;
-
-        match pixel_data {
-            0 => PalletIndex::I0,
-            1 => PalletIndex::I1,
-            2 => PalletIndex::I2,
-            3 => PalletIndex::I3,
-            _ => unreachable!("Invalid pixel data: {}", pixel_data),
+        match (bit1, bit0) {
+            (false, false) => PaletteIndex::I0,
+            (false, true) => PaletteIndex::I1,
+            (true, false) => PaletteIndex::I2,
+            (true, true) => PaletteIndex::I3,
         }
+    }
+
+    pub fn pixels(&self) -> [PaletteIndex; TILE_PIXEL_COUNT] {
+        let mut pixels = [PaletteIndex::I0; TILE_PIXEL_COUNT];
+
+        for y in 0..TILE_HEIGHT {
+            for x in 0..TILE_WIDTH {
+                let index = y * TILE_WIDTH + x;
+                pixels[index] = self.get_pixel(x, y).into();
+            }
+        }
+
+        pixels
     }
 }
 
 /// Color index in the pallet.
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Ord, PartialOrd, Hash)]
-pub enum PalletIndex {
+pub enum PaletteIndex {
     I0,
     I1,
     I2,

@@ -20,7 +20,7 @@ impl Emulator {
 
     pub fn get_bg_tile_index(&self, position: usize) -> u8 {
         let address = MEMORY_RANGE_TILE_INDICES_BANK0.start + position;
-        self.memory.get(address as u16)
+        self.get(address as u16)
     }
 
     pub fn get_background_tiles(&self) -> [Tile; TILE_MAP_TILES_COUNT] {

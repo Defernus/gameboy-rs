@@ -1,6 +1,5 @@
 use crate::*;
 
-#[derive(Default)]
 pub struct Emulator {
     /// **AF** register
     pub accumulator_and_flags: Register,
@@ -15,9 +14,7 @@ pub struct Emulator {
     /// **PC** register
     pub program_counter: ProgramCounter,
 
-    pub memory: Memory,
-
-    pub rom: Vec<u8>,
+    pub rom: Option<Rom>,
 
     /// Indicate that IME flag should be set after the next instruction
     pub delayed_ime_set: bool,
@@ -32,33 +29,77 @@ pub struct Emulator {
     /// **IR** register. Internal cpu register used to store the opcode of the
     /// next instruction.
     pub instruction_register: u8,
+
+    pub rom_bank_00: Box<[u8; MEMORY_SIZE_ROM_BANK_00]>,
+    pub rom_bank_01: Box<[u8; MEMORY_SIZE_ROM_BANK_01]>,
+    pub vram: Box<[u8; MEMORY_SIZE_VRAM]>,
+    pub external_ram: Box<[u8; MEMORY_SIZE_EXTERNAL_RAM]>,
+    pub work_ram_0: Box<[u8; MEMORY_SIZE_WORK_RAM_0]>,
+    pub work_ram_1: Box<[u8; MEMORY_SIZE_WORK_RAM_1]>,
+    pub oam: Box<[u8; MEMORY_SIZE_OAM]>,
+    pub not_usable: Box<[u8; MEMORY_SIZE_NOT_USABLE]>,
+    pub io_registers: Box<[u8; MEMORY_SIZE_IO_REGISTERS]>,
+    pub high_ram: Box<[u8; MEMORY_SIZE_HIGH_RAM]>,
+    pub interrupt_enable_register: u8,
+}
+
+impl Default for Emulator {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Emulator {
-    pub fn from_rom(rom: impl Into<Rom>) -> Self {
-        let mut rom: Rom = rom.into();
-        let mut memory = Memory::default();
-        memory.load_rom(&mut rom);
-
+    #[inline(always)]
+    pub fn new() -> Self {
         Self {
-            memory,
-            ..Default::default()
+            accumulator_and_flags: Register::default(),
+            register_bc: Register::default(),
+            register_de: Register::default(),
+            register_hl: Register::default(),
+            stack_pointer: StackPointer::default(),
+            program_counter: ProgramCounter::default(),
+            delayed_ime_set: false,
+            ime_flag: false,
+            rom: None,
+            cycles: 0,
+            is_in_low_power_mode: false,
+
+            instruction_register: 0,
+
+            rom_bank_00: Box::new([0; MEMORY_SIZE_ROM_BANK_00]),
+            rom_bank_01: Box::new([0; MEMORY_SIZE_ROM_BANK_01]),
+            vram: Box::new([0; MEMORY_SIZE_VRAM]),
+            external_ram: Box::new([0; MEMORY_SIZE_EXTERNAL_RAM]),
+            work_ram_0: Box::new([0; MEMORY_SIZE_WORK_RAM_0]),
+            work_ram_1: Box::new([0; MEMORY_SIZE_WORK_RAM_1]),
+            oam: Box::new([0; MEMORY_SIZE_OAM]),
+            not_usable: Box::new([0; MEMORY_SIZE_NOT_USABLE]),
+            io_registers: Box::new([0; MEMORY_SIZE_IO_REGISTERS]),
+            high_ram: Box::new([0; MEMORY_SIZE_HIGH_RAM]),
+            interrupt_enable_register: 0,
         }
     }
 
-    /// Try to read bytes at the current program counter and interpret them as an instruction.
-    ///
-    /// If the data is valid, the program counter will be incremented by the size of the instruction.
-    ///
-    /// Returns instruction and its size in bytes.
-    pub fn read_next_instruction(&mut self) -> Option<Instruction> {
-        let instruction = Instruction::read(
-            self.instruction_register,
-            &self.memory,
-            &mut self.program_counter,
-        )?;
+    pub fn from_rom(rom: impl Into<Rom>) -> Self {
+        let mut rom: Rom = rom.into();
+        let mut emulator = Self::new();
 
-        Some(instruction)
+        emulator.rom_bank_00 = Box::new(
+            rom.read_range(MEMORY_RANGE_ROM_BANK_00)
+                .try_into()
+                .expect("Invalid ROM bank 00 size"),
+        );
+
+        emulator.rom_bank_01 = Box::new(
+            rom.read_range(MEMORY_RANGE_ROM_BANK_01)
+                .try_into()
+                .expect("Invalid ROM bank 01 size"),
+        );
+
+        emulator.rom = Some(rom);
+
+        emulator
     }
 
     /// Handle given instruction without fetch and pc increment
@@ -82,10 +123,10 @@ impl Emulator {
     /// Handle instruction from instruction register(IR) without fetch and pc
     /// increment
     pub fn handle_next_instruction_pre_fetch(&mut self) -> Instruction {
-        let instruction = self.read_next_instruction().unwrap_or_else(|| {
+        let instruction = Instruction::read(self).unwrap_or_else(|| {
             panic!(
                 "Failed to read next instruction, opcode: {:02X}",
-                self.memory.get(self.program_counter.into())
+                self.instruction_register
             )
         });
 
@@ -109,12 +150,12 @@ impl Emulator {
 
     /// Fetch next instruction opcode, store it in the IR register and increment the PC
     pub fn fetch_opcode(&mut self) {
-        self.instruction_register = self.memory.read_u8_at_pc(&mut self.program_counter);
+        self.instruction_register = self.read_u8_at_pc();
     }
 
     /// Get 4th byte of LCDC register (BG and Window Tiles flag)
     pub fn get_bg_win_tiles(&self) -> bool {
-        let lcdc = self.memory.get(MEMORY_ADDRESS_REGISTER_LCDC);
+        let lcdc = self.get(MEMORY_ADDRESS_REGISTER_LCDC);
 
         lcdc & LCDC_BW_WINDOW_TILES_MASK == LCDC_BW_WINDOW_TILES_MASK
     }

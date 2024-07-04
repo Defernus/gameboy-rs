@@ -17,7 +17,7 @@ impl InstructionTrait for InstructionLDH {
     fn execute(&self, emulator: &mut Emulator) -> u8 {
         match self {
             Self::AtN8_A(to) => {
-                emulator.memory.set(
+                emulator.set(
                     0xFF00 + to.get(emulator) as u16,
                     emulator.accumulator_and_flags.high(),
                 );
@@ -25,7 +25,7 @@ impl InstructionTrait for InstructionLDH {
                 3
             }
             Self::AtC_A => {
-                emulator.memory.set(
+                emulator.set(
                     0xFF00 + emulator.register_bc.low() as u16,
                     emulator.accumulator_and_flags.high(),
                 );
@@ -33,17 +33,15 @@ impl InstructionTrait for InstructionLDH {
                 2
             }
             Self::A_AtN8(from) => {
-                let value = emulator.memory.get(0xFF00 + from.get(emulator) as u16);
+                let value = emulator.get(0xFF00 + from.get(emulator) as u16);
                 emulator.accumulator_and_flags.set_high(value);
 
                 3
             }
             Self::A_AtC => {
-                emulator.accumulator_and_flags.set_high(
-                    emulator
-                        .memory
-                        .get(0xFF00 + emulator.register_bc.low() as u16),
-                );
+                emulator
+                    .accumulator_and_flags
+                    .set_high(emulator.get(0xFF00 + emulator.register_bc.low() as u16));
 
                 2
             }

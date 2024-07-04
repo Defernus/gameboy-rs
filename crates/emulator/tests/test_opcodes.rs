@@ -133,7 +133,7 @@ impl EmulatorTestState {
         emulator.stack_pointer = self.sp.into();
 
         for (address, value) in self.ram {
-            emulator.memory.set(address, value);
+            emulator.set(address, value);
         }
     }
 
@@ -189,7 +189,7 @@ impl EmulatorTestState {
 
         for (i, (address, value)) in self.ram.into_iter().enumerate() {
             assert_eq!(
-                emulator.memory.get(address),
+                emulator.get(address),
                 value,
                 "memory at address {address}({address:04X}) mismatch {location}.final.ram[{i}]"
             );

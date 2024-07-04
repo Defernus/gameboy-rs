@@ -1,5 +1,8 @@
 use crate::*;
 
+/// Disable Interrupts by clearing the IME flag.
+///
+/// Flags: None affected.
 #[allow(non_camel_case_types)]
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub struct InstructionDI;

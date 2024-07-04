@@ -82,11 +82,11 @@ impl Register {
 
     #[inline(always)]
     pub fn at(self, emulator: &Emulator) -> u8 {
-        emulator.memory.get(self.as_u16())
+        emulator.get(self.as_u16())
     }
 
     #[inline(always)]
     pub fn at_mut(self, emulator: &mut Emulator) -> &mut u8 {
-        emulator.memory.get_mut(self.as_u16())
+        emulator.get_mut(self.as_u16())
     }
 }
