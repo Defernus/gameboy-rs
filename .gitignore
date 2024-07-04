@@ -8,6 +8,7 @@ node_modules
 .idea
 .env
 
+/opcode-tests-repo
 /cpu-test-data
 
 .DS_Store

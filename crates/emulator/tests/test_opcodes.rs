@@ -5,6 +5,7 @@ use std::fs::read_to_string;
 const TEST_FOLDER: &str = "../../cpu-test-data";
 
 #[test]
+#[ignore = "integration test"]
 fn test_opcodes() {
     let mut missing_tests = vec![];
 
