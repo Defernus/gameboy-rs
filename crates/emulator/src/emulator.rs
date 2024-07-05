@@ -153,10 +153,13 @@ impl Emulator {
         self.instruction_register = self.read_u8_at_pc();
     }
 
-    /// Get 4th byte of LCDC register (BG and Window Tiles flag)
-    pub fn get_bg_win_tiles(&self) -> bool {
-        let lcdc = self.get(MEMORY_ADDRESS_REGISTER_LCDC);
+    /// Get control register
+    pub fn reg<T: ControlRegister>(&self) -> T {
+        T::from(self.get(T::ADDRESS))
+    }
 
-        lcdc & LCDC_BW_WINDOW_TILES_MASK == LCDC_BW_WINDOW_TILES_MASK
+    /// Get mutable reference to control register
+    pub fn reg_mut<T: ControlRegister>(&mut self) -> &mut T {
+        T::from_memory_mut(self)
     }
 }

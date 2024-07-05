@@ -61,7 +61,7 @@ impl Tile {
     /// tile data can be located at $8000-$87FF or $8800-$97FF.
     pub fn read_bg_tile(emulator: &Emulator, tile_index: u8) -> Self {
         let tile_index = tile_index as u16;
-        let address = if emulator.get_bg_win_tiles() {
+        let address = if emulator.reg::<RegisterLCDC>().get_bg_and_win_tile() {
             MEMORY_RANGE_TILES_BLOCK0.start as u16 + (tile_index * TILE_SIZE as u16)
         } else if tile_index < 128 {
             MEMORY_RANGE_TILES_BLOCK2.start as u16 + (tile_index * TILE_SIZE as u16)

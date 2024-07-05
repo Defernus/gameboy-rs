@@ -7,6 +7,13 @@ const LOW_REGISTER: usize = 0;
 ///
 /// Divided into two 8-bit registers: high and low.
 ///
+/// ```
+/// 0x12_34
+///   |  |
+///   |  +-- low
+///   +----- high
+/// ```
+///
 /// For example the `BC` register is divided into `B` - high and `C` - low.
 #[derive(Default, Debug, Clone, Copy)]
 pub struct Register([u8; 2]);

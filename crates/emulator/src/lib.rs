@@ -2,6 +2,9 @@
 #[cfg(target_endian = "big")]
 compile_error!("This crate does not support big-endian targets");
 
+pub use emulator_derive::*;
+
+mod control_registers;
 mod emulator;
 mod flags;
 mod instruction_set;
@@ -13,6 +16,7 @@ mod rom;
 mod stack_handlers;
 mod stack_pointer;
 
+pub use control_registers::*;
 pub use emulator::*;
 pub use flags::*;
 pub use instruction_set::*;

@@ -83,10 +83,6 @@ pub const MEMORY_RANGE_OBJECT_TILES: std::ops::Range<usize> = 0x8000..0x8FFF;
 
 // TODO add I/O range
 
-pub const MEMORY_ADDRESS_REGISTER_LCDC: u16 = 0xFF40;
-pub const LCDC_BW_WINDOW_TILES_MASK: u8 = 0b0001_0000;
-pub const LCDC_BW_TILE_MAP_MASK: u8 = 0b0000_1000;
-
 impl Emulator {
     #[inline(always)]
     pub fn get(&self, address: u16) -> u8 {
