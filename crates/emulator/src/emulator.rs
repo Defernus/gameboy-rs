@@ -55,6 +55,8 @@ pub struct Emulator {
 
     /// Indicate if a new frame is available to be rendered
     pub is_frame_available: bool,
+
+    pub mode_3_duration: usize,
 }
 
 impl Default for Emulator {
@@ -81,6 +83,7 @@ impl Emulator {
             is_in_low_power_mode: false,
             scanline_progress: 0,
             dots_in_current_mode: 0,
+            mode_3_duration: MODE_3_BASE_DURATION,
 
             screen: Screen::new(),
 

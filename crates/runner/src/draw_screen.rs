@@ -2,14 +2,14 @@ use emulator::*;
 use macroquad::prelude::*;
 
 /// Draw emulator screen
-pub fn draw_background_to_image(emulator: &Emulator, image: &mut Image) {
-    let background = emulator.get_background_tiles();
+pub fn draw_tilemap_to_image(emulator: &Emulator, image: &mut Image, window: bool) {
+    let tilemap = emulator.get_tiles(window);
 
     for tile_y in 0..TILE_MAP_HEIGHT {
         for tile_x in 0..TILE_MAP_HEIGHT {
             let tile_position = tile_map_cords_to_position(tile_x, tile_y);
 
-            let tile = background[tile_position];
+            let tile = tilemap[tile_position];
 
             let tile_x = tile_x as u32 * TILE_WIDTH as u32;
             let tile_y = tile_y as u32 * TILE_HEIGHT as u32;

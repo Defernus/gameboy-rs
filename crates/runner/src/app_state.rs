@@ -14,7 +14,7 @@ impl AppState {
         Self {
             emulator,
             steps: 0,
-            screen_scale: 3.0,
+            screen_scale: 1.0,
         }
     }
 

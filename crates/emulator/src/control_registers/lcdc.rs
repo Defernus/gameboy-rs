@@ -39,7 +39,7 @@ impl RegisterLCDC {
     #[flag_mask]
     pub const BG_AND_WIN_TILE: u8 = 0b0001_0000;
 
-    /// THis flag works similarly to LCDC bit 6: if the bit is clear (0), the
+    /// This flag works similarly to LCDC bit 6: if the bit is clear (0), the
     /// BG uses tilemap $9800, otherwise tilemap $9C00.
     #[flag_mask]
     pub const BG_TILE_MAP: u8 = 0b0000_1000;

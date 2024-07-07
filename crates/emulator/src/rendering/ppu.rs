@@ -20,6 +20,11 @@ pub const MODE_3_BASE_DURATION: usize = 172;
 impl Emulator {
     /// Handle single dot (smallest unit of time in Pixel Processing Unit).
     pub fn handle_dot(&mut self) {
+        if !self.reg::<RegisterLCDC>().get_lcd_and_ppu_enable() {
+            // skip if PPU is disabled
+            return;
+        }
+
         let current_mode = self.reg::<RegisterSTAT>().get_ppu_mode();
         self.scanline_progress += 1;
         self.dots_in_current_mode += 1;
@@ -50,10 +55,7 @@ impl Emulator {
             }
             // Sending pixels to the LCD
             PpuMode::Mode3 => {
-                let scx = self.reg::<RegisterSCX>().0;
-                let bg_delay = (scx % 8) as usize;
-
-                if self.scanline_progress >= MODE_2_DURATION + MODE_3_BASE_DURATION + bg_delay {
+                if self.scanline_progress >= MODE_2_DURATION + self.mode_3_duration {
                     PpuMode::Mode0.into()
                 } else {
                     None

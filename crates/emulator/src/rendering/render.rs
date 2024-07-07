@@ -16,16 +16,34 @@ impl Emulator {
         todo!()
     }
 
-    pub fn get_bg_tile_index(&self, position: usize) -> u8 {
-        let address = MEMORY_RANGE_TILE_INDICES_BANK0.start + position;
+    /// Get index of the tile by it's position in the tile map.
+    ///
+    /// if window is true, then window tile map is used, otherwise background.
+    pub fn get_tile_index(&self, position: usize, window: bool) -> u8 {
+        let selected_tilemap_flag = if window {
+            self.reg::<RegisterLCDC>().get_win_tile_map()
+        } else {
+            self.reg::<RegisterLCDC>().get_bg_tile_map()
+        };
+
+        let selected_tilemap = if selected_tilemap_flag {
+            MEMORY_RANGE_TILE_INDICES_BANK1.start
+        } else {
+            MEMORY_RANGE_TILE_INDICES_BANK0.start
+        };
+
+        let address = selected_tilemap + position;
         self.get(address as u16)
     }
 
-    pub fn get_background_tiles(&self) -> [Tile; TILE_MAP_TILES_COUNT] {
+    /// Get tilemap from the memory.
+    ///
+    /// if window is true, then window tile map is used, otherwise background.
+    pub fn get_tiles(&self, window: bool) -> [Tile; TILE_MAP_TILES_COUNT] {
         let mut result = [Tile::default(); TILE_MAP_TILES_COUNT];
 
         for tile_position in 0..TILE_MAP_TILES_COUNT {
-            let tile_index = self.get_bg_tile_index(tile_position);
+            let tile_index = self.get_tile_index(tile_position, window);
             let tile = Tile::read_bg_tile(self, tile_index);
 
             // TODO add tile attribute if CGB mode enabled

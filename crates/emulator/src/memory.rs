@@ -102,8 +102,12 @@ fn is_address_accessible_ppu(address: u16, ppu_mode: PpuMode) -> bool {
 
 impl Emulator {
     pub fn is_address_accessible(&self, address: u16) -> bool {
-        let ppu_mode = self.reg::<RegisterSTAT>().get_ppu_mode();
-        is_address_accessible_ppu(address, ppu_mode)
+        if self.reg::<RegisterLCDC>().get_lcd_and_ppu_enable() {
+            let ppu_mode = self.reg::<RegisterSTAT>().get_ppu_mode();
+            is_address_accessible_ppu(address, ppu_mode)
+        } else {
+            true
+        }
     }
 
     /// Get value in memory as CPU would see it.
