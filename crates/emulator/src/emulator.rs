@@ -14,6 +14,9 @@ pub struct Emulator {
     /// **PC** register
     pub program_counter: ProgramCounter,
 
+    /// Internal timer register, increments every M-cycle
+    pub internal_timer: CpuRegister,
+
     pub screen: Screen,
 
     pub rom: Option<Rom>,
@@ -88,6 +91,7 @@ impl Emulator {
             dots_in_current_mode: 0,
             mode_3_duration: MODE_3_BASE_DURATION,
             disable_registers_update: false,
+            internal_timer: CpuRegister::default(),
 
             screen: Screen::new(),
 
@@ -161,6 +165,10 @@ impl Emulator {
         }
 
         self.cycles += cycles;
+
+        for _ in 0..cycles {
+            self.tick_internal_timer();
+        }
 
         if !self.disable_registers_update {
             self.update_registers();

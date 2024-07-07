@@ -275,6 +275,10 @@ impl Emulator {
             return;
         }
 
+        if address == RegisterDIV::ADDRESS {
+            *self.internal_timer.as_u16_mut() = 0;
+        }
+
         self.set_force(address, value);
     }
 
@@ -297,6 +301,17 @@ impl Emulator {
 
     /// Update registers after a cycle.
     pub fn update_registers(&mut self) {
+        self.update_stat_register();
+
+        self.update_timer();
+    }
+
+    fn update_timer(&mut self) {
+        let internal_timer = self.internal_timer;
+        self.reg_mut::<RegisterDIV>().0 = internal_timer.high();
+    }
+
+    fn update_stat_register(&mut self) {
         let ly = self.reg::<RegisterLY>().0;
         let lyc = self.reg::<RegisterLYC>().0;
 
