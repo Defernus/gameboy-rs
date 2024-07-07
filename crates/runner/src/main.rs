@@ -13,17 +13,13 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let hello_world_rom = include_bytes!("../../../test-roms/hello.gb");
-    // let hello_world_rom = include_bytes!("../../../roms/tetris.gb");
+    // let rom = include_bytes!("../../../roms/tetris.gb");
+    let rom = include_bytes!("../../../test-roms/hello.gb");
+
     let mut state = AppState {
-        emulator: Emulator::from_rom(hello_world_rom.to_vec()),
-        debug_state: AppDebugState {
-            instructions_debug_file: Some("debug.csv".into()),
-            ..Default::default()
-        },
+        emulator: Emulator::from_rom(rom.to_vec()),
         ..Default::default()
     };
-    state.init();
 
     let mut background_image = Image::gen_image_color(
         TILE_MAP_WIDTH as u16 * TILE_WIDTH as u16,
@@ -49,7 +45,7 @@ async fn main() {
             },
         );
 
-        draw_debug_ui(&mut state);
+        state.emulator.next_frame();
 
         next_frame().await
     }

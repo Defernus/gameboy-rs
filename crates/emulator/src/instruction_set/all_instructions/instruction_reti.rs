@@ -5,7 +5,7 @@ use crate::*;
 pub struct InstructionRETI;
 
 impl InstructionTrait for InstructionRETI {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         emulator.delayed_ime_set = true;
         emulator.program_counter = emulator.pop_from_stack();
 

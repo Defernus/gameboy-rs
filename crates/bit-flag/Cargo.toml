@@ -1,0 +1,16 @@
+[package]
+name = "bit-flag"
+version = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+
+
+[dependencies]
+bit-flag-derive = { path = "../bit-flag-derive" }
+
+[dev-dependencies]
+serde.workspace = true
+serde_json.workspace = true

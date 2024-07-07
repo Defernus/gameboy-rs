@@ -20,7 +20,7 @@ pub enum InstructionDEC {
 }
 
 impl InstructionTrait for InstructionDEC {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match self {
             Self::R8(reg) => {
                 let prev_value = reg.get(emulator);

@@ -12,7 +12,7 @@ pub enum InstructionJP {
 }
 
 impl InstructionTrait for InstructionJP {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match self {
             Self::N16(to_address) => {
                 emulator.program_counter = to_address.get(emulator).into();

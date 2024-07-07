@@ -5,7 +5,7 @@ use crate::*;
 pub struct InstructionNOP;
 
 impl InstructionTrait for InstructionNOP {
-    fn execute(&self, _cpu: &mut Emulator) -> u8 {
+    fn execute(&self, _cpu: &mut Emulator) -> usize {
         1
     }
 }

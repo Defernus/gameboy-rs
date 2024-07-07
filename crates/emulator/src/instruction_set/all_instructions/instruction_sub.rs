@@ -18,7 +18,7 @@ pub enum InstructionSUB {
 }
 
 impl InstructionTrait for InstructionSUB {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let (input_value, cycles) = match self {
             Self::A_R8(arg @ ArgumentR8::AtHL) => (arg.get(emulator), 2),
             Self::A_R8(arg) => (arg.get(emulator), 1),

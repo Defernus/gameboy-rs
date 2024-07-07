@@ -14,7 +14,7 @@ pub enum InstructionLDH {
 }
 
 impl InstructionTrait for InstructionLDH {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match self {
             Self::AtN8_A(to) => {
                 emulator.set(

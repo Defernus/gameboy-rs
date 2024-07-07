@@ -8,7 +8,7 @@ pub enum InstructionJR {
 }
 
 impl InstructionTrait for InstructionJR {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match self {
             Self::E8(offset) => {
                 emulator.program_counter =

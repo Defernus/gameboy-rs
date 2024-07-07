@@ -20,10 +20,15 @@ pub fn impl_derive(input: TokenStream) -> syn::Result<TokenStream> {
         impl #impl_generics crate::ControlRegister for #struct_name #ty_generics #where_clause {
             const ADDRESS: u16 = #address;
 
-            fn from_memory_mut(emulator: &mut Emulator) -> &mut Self {
-                let data = emulator.get_mut(Self::ADDRESS);
+            fn from_memory_mut(emulator: &mut crate::Emulator) -> &mut Self {
+                let data = emulator.get_mut_force(Self::ADDRESS);
 
-                // Safety: `RegisterLCDC` has the same memory layout as `u8`
+                unsafe { std::mem::transmute(data) }
+            }
+
+            fn from_memory(emulator: &crate::Emulator) -> &Self {
+                let data = emulator.get_force(Self::ADDRESS);
+
                 unsafe { std::mem::transmute(data) }
             }
         }

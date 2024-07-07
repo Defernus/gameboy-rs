@@ -14,7 +14,7 @@ use crate::*;
 pub struct InstructionDAA;
 
 impl InstructionTrait for InstructionDAA {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let mut value = emulator.accumulator_and_flags.high(); // B2 (178)
 
         let flags = emulator.accumulator_and_flags.low(); // 0111

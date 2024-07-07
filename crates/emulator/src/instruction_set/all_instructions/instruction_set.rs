@@ -6,7 +6,7 @@ use crate::*;
 pub struct InstructionSET(pub ArgumentU3, pub ArgumentR8);
 
 impl InstructionTrait for InstructionSET {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let Self(bit, reg) = *self;
 
         let bit = bit.get(emulator);

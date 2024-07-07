@@ -18,7 +18,7 @@ pub enum InstructionADC {
 }
 
 impl InstructionTrait for InstructionADC {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let (input_value, cycles) = match self {
             InstructionADC::A_R8(arg @ ArgumentR8::AtHL) => (arg.get(emulator), 2),
             InstructionADC::A_R8(arg) => (arg.get(emulator), 1),

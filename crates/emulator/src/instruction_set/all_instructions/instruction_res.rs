@@ -8,7 +8,7 @@ use crate::*;
 pub struct InstructionRES(pub ArgumentU3, pub ArgumentR8);
 
 impl InstructionTrait for InstructionRES {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let Self(bit, reg) = *self;
 
         let bit = bit.get(emulator);

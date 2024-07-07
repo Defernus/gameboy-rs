@@ -15,7 +15,7 @@ use crate::*;
 pub struct InstructionHALT;
 
 impl InstructionTrait for InstructionHALT {
-    fn execute(&self, _cpu: &mut Emulator) -> u8 {
+    fn execute(&self, _cpu: &mut Emulator) -> usize {
         todo!("Implement HALT instruction")
     }
 }

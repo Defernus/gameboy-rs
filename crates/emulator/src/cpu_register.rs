@@ -16,9 +16,9 @@ const LOW_REGISTER: usize = 0;
 ///
 /// For example the `BC` register is divided into `B` - high and `C` - low.
 #[derive(Default, Debug, Clone, Copy)]
-pub struct Register([u8; 2]);
+pub struct CpuRegister([u8; 2]);
 
-impl Register {
+impl CpuRegister {
     #[inline(always)]
     pub fn new() -> Self {
         Self([0; 2])
@@ -86,14 +86,21 @@ impl Register {
     pub fn low_mut(&mut self) -> &mut u8 {
         &mut self.0[LOW_REGISTER]
     }
-
-    #[inline(always)]
-    pub fn at(self, emulator: &Emulator) -> u8 {
+}
+impl MemoryAddress for CpuRegister {
+    fn get_at(&self, emulator: &Emulator) -> u8 {
         emulator.get(self.as_u16())
     }
 
-    #[inline(always)]
-    pub fn at_mut(self, emulator: &mut Emulator) -> &mut u8 {
-        emulator.get_mut(self.as_u16())
+    fn get_at_force(&self, emulator: &Emulator) -> u8 {
+        *emulator.get_force(self.as_u16())
+    }
+
+    fn set_at(&self, emulator: &mut Emulator, value: u8) {
+        emulator.set(self.as_u16(), value);
+    }
+
+    fn set_at_force(&self, emulator: &mut Emulator, value: u8) {
+        emulator.set_force(self.as_u16(), value);
     }
 }

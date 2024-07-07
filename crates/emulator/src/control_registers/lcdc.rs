@@ -1,9 +1,16 @@
 use crate::*;
+use bit_flag::{bit_flag, flag_mask};
 
 /// LCD Control Register
-#[derive(ControlRegister)]
+#[derive(Copy, Clone, ControlRegister)]
 #[register(address = 0xFF40)]
 pub struct RegisterLCDC(pub u8);
+
+impl Default for RegisterLCDC {
+    fn default() -> Self {
+        RegisterLCDC(0x91)
+    }
+}
 
 #[bit_flag]
 impl RegisterLCDC {

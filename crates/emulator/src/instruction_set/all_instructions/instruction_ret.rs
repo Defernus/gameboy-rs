@@ -12,7 +12,7 @@ use crate::*;
 pub struct InstructionRET(pub Option<ArgumentCC>);
 
 impl InstructionTrait for InstructionRET {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let mut cycles = 4;
 
         if let Some(cc) = self.0 {

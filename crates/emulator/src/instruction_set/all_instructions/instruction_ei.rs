@@ -6,7 +6,7 @@ use crate::*;
 pub struct InstructionEI;
 
 impl InstructionTrait for InstructionEI {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         emulator.delayed_ime_set = true;
 
         1

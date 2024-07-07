@@ -1,3 +1,5 @@
+use bit_flag::U3;
+
 use crate::*;
 
 /// r8 argument type. Any of the 8-bit registers or memory at HL.
@@ -18,31 +20,30 @@ impl ArgumentR8 {
     pub fn from_bits(b0: bool, b1: bool, b2: bool) -> Self {
         match (b0, b1, b2) {
             (false, false, false) => Self::B,
-            (false, false, true) => Self::C,
+            (true, false, false) => Self::C,
             (false, true, false) => Self::D,
-            (false, true, true) => Self::E,
-            (true, false, false) => Self::H,
+            (true, true, false) => Self::E,
+            (false, false, true) => Self::H,
             (true, false, true) => Self::L,
-            (true, true, false) => Self::AtHL,
+            (false, true, true) => Self::AtHL,
             (true, true, true) => Self::A,
         }
     }
 }
 
 impl ArgumentWrite for ArgumentR8 {
-    type Result = u8;
+    type Value = u8;
 
-    /// Returns a mutable reference to the 8-bit register or memory at HL.
-    fn get_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut Self::Result {
+    fn set(&self, emulator: &mut Emulator, value: Self::Value) {
         match self {
-            Self::B => emulator.register_bc.high_mut(),
-            Self::C => emulator.register_bc.low_mut(),
-            Self::D => emulator.register_de.high_mut(),
-            Self::E => emulator.register_de.low_mut(),
-            Self::H => emulator.register_hl.high_mut(),
-            Self::L => emulator.register_hl.low_mut(),
-            Self::AtHL => emulator.get_mut(emulator.register_hl.as_u16()),
-            Self::A => emulator.accumulator_and_flags.high_mut(),
+            Self::B => emulator.register_bc.set_high(value),
+            Self::C => emulator.register_bc.set_low(value),
+            Self::D => emulator.register_de.set_high(value),
+            Self::E => emulator.register_de.set_low(value),
+            Self::H => emulator.register_hl.set_high(value),
+            Self::L => emulator.register_hl.set_low(value),
+            Self::AtHL => emulator.set(emulator.register_hl.as_u16(), value),
+            Self::A => emulator.accumulator_and_flags.set_high(value),
         }
     }
 }
@@ -79,23 +80,22 @@ impl ArgumentR16 {
     pub fn from_bits(b0: bool, b1: bool) -> Self {
         match (b0, b1) {
             (false, false) => Self::BC,
-            (false, true) => Self::DE,
-            (true, false) => Self::HL,
+            (true, false) => Self::DE,
+            (false, true) => Self::HL,
             (true, true) => Self::SP,
         }
     }
 }
 
 impl ArgumentWrite for ArgumentR16 {
-    type Result = u16;
+    type Value = u16;
 
-    /// Returns a mutable reference to the 16-bit register.
-    fn get_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut Self::Result {
+    fn set(&self, emulator: &mut Emulator, value: Self::Value) {
         match self {
-            Self::BC => emulator.register_bc.as_u16_mut(),
-            Self::DE => emulator.register_de.as_u16_mut(),
-            Self::HL => emulator.register_hl.as_u16_mut(),
-            Self::SP => &mut emulator.stack_pointer.0,
+            Self::BC => emulator.register_bc.set(value),
+            Self::DE => emulator.register_de.set(value),
+            Self::HL => emulator.register_hl.set(value),
+            Self::SP => emulator.stack_pointer.0 = value,
         }
     }
 }
@@ -114,18 +114,6 @@ impl ArgumentRead for ArgumentR16 {
     }
 }
 
-impl MemoryAccess for ArgumentR16 {
-    /// Returns the value of the memory at the address in the 16-bit register.
-    fn at(&self, emulator: &Emulator) -> u8 {
-        emulator.get(self.get(emulator))
-    }
-
-    /// Returns a mutable reference to the memory at the address in the 16-bit register.
-    fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
-        emulator.get_mut(self.get(emulator))
-    }
-}
-
 /// r16stk argument. Any of the general-purpose 16-bit registers and AF (accumulator and flags).
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub enum ArgumentStkR16 {
@@ -140,23 +128,22 @@ impl ArgumentStkR16 {
     pub fn from_bits(b0: bool, b1: bool) -> Self {
         match (b0, b1) {
             (false, false) => Self::BC,
-            (false, true) => Self::DE,
-            (true, false) => Self::HL,
+            (true, false) => Self::DE,
+            (false, true) => Self::HL,
             (true, true) => Self::AF,
         }
     }
 }
 
 impl ArgumentWrite for ArgumentStkR16 {
-    type Result = u16;
+    type Value = u16;
 
-    /// Returns a mutable reference to the 16-bit register.
-    fn get_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut Self::Result {
+    fn set(&self, emulator: &mut Emulator, value: Self::Value) {
         match self {
-            Self::BC => emulator.register_bc.as_u16_mut(),
-            Self::DE => emulator.register_de.as_u16_mut(),
-            Self::HL => emulator.register_hl.as_u16_mut(),
-            Self::AF => emulator.accumulator_and_flags.as_u16_mut(),
+            Self::BC => emulator.register_bc.set(value),
+            Self::DE => emulator.register_de.set(value),
+            Self::HL => emulator.register_hl.set(value),
+            Self::AF => emulator.accumulator_and_flags.set(value),
         }
     }
 }
@@ -172,18 +159,6 @@ impl ArgumentRead for ArgumentStkR16 {
             Self::HL => emulator.register_hl.as_u16(),
             Self::AF => emulator.accumulator_and_flags.as_u16(),
         }
-    }
-}
-
-impl MemoryAccess for ArgumentStkR16 {
-    /// Returns the value of the memory at the address in the 16-bit register.
-    fn at(&self, emulator: &Emulator) -> u8 {
-        emulator.get(self.get(emulator))
-    }
-
-    /// Returns a mutable reference to the memory at the address in the 16-bit register.
-    fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
-        emulator.get_mut(self.get(emulator))
     }
 }
 
@@ -210,18 +185,6 @@ impl ArgumentRead for ArgumentN16 {
     /// Returns the value of the 16-bit integer constant.
     fn get(&self, _cpu: &Emulator) -> Self::Result {
         self.0
-    }
-}
-
-impl MemoryAccess for ArgumentN16 {
-    /// Returns the value of the memory at the address in the 16-bit integer constant.
-    fn at(&self, emulator: &Emulator) -> u8 {
-        emulator.get(self.get(emulator))
-    }
-
-    /// Returns a mutable reference to the memory at the address in the 16-bit integer constant.
-    fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8 {
-        emulator.get_mut(self.get(emulator))
     }
 }
 
@@ -274,7 +237,7 @@ impl ArgumentRead for ArgumentE8 {
 
 /// u3 argument. 3-bit unsigned integer constant (0 to 7).
 #[derive(Copy, Debug, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
-pub struct ArgumentU3(u8);
+pub struct ArgumentU3(U3);
 
 impl ArgumentRead for ArgumentU3 {
     type Result = u8;
@@ -287,20 +250,19 @@ impl ArgumentRead for ArgumentU3 {
 
 impl ArgumentU3 {
     pub fn from_bits(b0: bool, b1: bool, b2: bool) -> Self {
-        let value = (b0 as u8) << 2 | (b1 as u8) << 1 | b2 as u8;
-        Self(value)
+        Self(U3::from_bits([b0, b1, b2]))
     }
 }
 
 impl From<u8> for ArgumentU3 {
     fn from(value: u8) -> Self {
-        ArgumentU3(value & 0b111)
+        ArgumentU3(value.into())
     }
 }
 
 impl From<ArgumentU3> for u8 {
     fn from(value: ArgumentU3) -> Self {
-        value.0 & 0b111
+        value.0.into()
     }
 }
 
@@ -321,8 +283,8 @@ impl ArgumentCC {
     pub fn from_bits(b0: bool, b1: bool) -> Self {
         match (b0, b1) {
             (false, false) => Self::NZ,
-            (false, true) => Self::Z,
-            (true, false) => Self::NC,
+            (true, false) => Self::Z,
+            (false, true) => Self::NC,
             (true, true) => Self::C,
         }
     }
@@ -349,14 +311,32 @@ pub trait ArgumentRead {
     fn get(&self, emulator: &Emulator) -> Self::Result;
 }
 
-pub trait ArgumentWrite {
-    type Result;
-
-    fn get_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut Self::Result;
-
-    fn set(&self, emulator: &mut Emulator, value: Self::Result) {
-        *self.get_mut(emulator) = value;
+impl<T: ArgumentRead<Result = u16>> MemoryAddress for T {
+    fn get_at(&self, emulator: &Emulator) -> u8 {
+        let address = self.get(emulator);
+        emulator.get(address)
     }
+
+    fn get_at_force(&self, emulator: &Emulator) -> u8 {
+        let address = self.get(emulator);
+        *emulator.get_force(address)
+    }
+
+    fn set_at(&self, emulator: &mut Emulator, value: u8) {
+        let address = self.get(emulator);
+        emulator.set(address, value);
+    }
+
+    fn set_at_force(&self, emulator: &mut Emulator, value: u8) {
+        let address = self.get(emulator);
+        emulator.set_force(address, value);
+    }
+}
+
+pub trait ArgumentWrite {
+    type Value;
+
+    fn set(&self, emulator: &mut Emulator, value: Self::Value);
 }
 
 #[repr(u8)]
@@ -376,12 +356,12 @@ impl ArgumentVec {
     pub fn from_bits(b0: bool, b1: bool, b2: bool) -> Self {
         match (b0, b1, b2) {
             (false, false, false) => Self::Value0x00,
-            (false, false, true) => Self::Value0x08,
+            (true, false, false) => Self::Value0x08,
             (false, true, false) => Self::Value0x10,
-            (false, true, true) => Self::Value0x18,
-            (true, false, false) => Self::Value0x20,
+            (true, true, false) => Self::Value0x18,
+            (false, false, true) => Self::Value0x20,
             (true, false, true) => Self::Value0x28,
-            (true, true, false) => Self::Value0x30,
+            (false, true, true) => Self::Value0x30,
             (true, true, true) => Self::Value0x38,
         }
     }

@@ -52,10 +52,10 @@ pub enum Instruction {
 
 #[enum_dispatch(Instruction)]
 pub trait InstructionTrait {
-    /// Execute the instruction and return the number of cycles it took.
+    /// Execute the instruction and return the number of M-cycles it took.
     ///
     /// Returns 0 if the instruction is impossible.
-    fn execute(&self, emulator: &mut Emulator) -> u8;
+    fn execute(&self, emulator: &mut Emulator) -> usize;
 }
 
 macro_rules! bit {
@@ -91,14 +91,14 @@ impl Instruction {
             // nop	0	0	0	0	0	0	0	0
             bits![0, 0, 0, 0, 0, 0, 0, 0] => Some(Self::NOP(InstructionNOP)),
             // ld r16, n16	0	0	Dest (r16)	0	0	0	1
-            bits![0, 0, b0, b1, 0, 0, 0, 1] => {
+            bits![0, 0, b1, b0, 0, 0, 0, 1] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
                 let n16 = emulator.read_u16_at_pc();
 
                 Some(Self::LD(InstructionLD::R16_N16(r16, ArgumentN16(n16))))
             }
             // ld [r16mem], a	0	0	Dest (r16mem)	0	0	1	0
-            bits![0, 0, b0, b1, 0, 0, 1, 0] => {
+            bits![0, 0, b1, b0, 0, 0, 1, 0] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
                 let data = match r16 {
@@ -110,7 +110,7 @@ impl Instruction {
                 Some(Self::LD(data))
             }
             // ld a, [r16mem]	0	0	Source (r16mem)	1	0	1	0
-            bits![0, 0, b0, b1, 1, 0, 1, 0] => {
+            bits![0, 0, b1, b0, 1, 0, 1, 0] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
                 let data = match r16 {
@@ -129,40 +129,40 @@ impl Instruction {
             }
 
             // inc r16	0	0	Operand (r16)	0	0	1	1
-            bits![0, 0, b0, b1, 0, 0, 1, 1] => {
+            bits![0, 0, b1, b0, 0, 0, 1, 1] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
                 Some(Self::INC(InstructionINC::R16(r16)))
             }
             // dec r16	0	0	Operand (r16)	1	0	1	1
-            bits![0, 0, b0, b1, 1, 0, 1, 1] => {
+            bits![0, 0, b1, b0, 1, 0, 1, 1] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
                 Some(Self::DEC(InstructionDEC::R16(r16)))
             }
             // add hl, r16	0	0	Operand (r16)	1	0	0	1
-            bits![0, 0, b0, b1, 1, 0, 0, 1] => {
+            bits![0, 0, b1, b0, 1, 0, 0, 1] => {
                 let r16 = ArgumentR16::from_bits(b0, b1);
 
                 Some(Self::ADD(InstructionADD::HL_R16(r16)))
             }
 
             // inc r8	0	0	Operand (r8)	1	0	0
-            bits![0, 0, b0, b1, b2, 1, 0, 0] => {
+            bits![0, 0, b2, b1, b0, 1, 0, 0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::INC(InstructionINC::R8(r8)))
             }
             // dec r8	0	0	Operand (r8)	1	0	1
-            bits![0, 0, b0, b1, b2, 1, 0, 1] => {
+            bits![0, 0, b2, b1, b0, 1, 0, 1] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::DEC(InstructionDEC::R8(r8)))
             }
 
             // ld r8, n8	0	0	Dest (r8)	1	1	0
-            bits![0, 0, b0, b1, b3, 1, 1, 0] => {
-                let r8 = ArgumentR8::from_bits(b0, b1, b3);
+            bits![0, 0, b2, b1, b0, 1, 1, 0] => {
+                let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 let n8 = emulator.read_u8_at_pc();
 
@@ -193,7 +193,7 @@ impl Instruction {
                 Some(Self::JR(InstructionJR::E8(ArgumentE8(e8))))
             }
             // jr cond, e8	0	0	1	Condition (cond)	0	0	0
-            bits![0, 0, 1, b0, b1, 0, 0, 0] => {
+            bits![0, 0, 1, b1, b0, 0, 0, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
                 let e8 = emulator.read_i8_at_pc();
 
@@ -209,9 +209,9 @@ impl Instruction {
             bits![0, 1, 1, 1, 0, 1, 1, 0] => Some(Self::HALT(InstructionHALT)),
 
             // ld r8, r8	0	1	Dest (r8)	Source (r8)
-            bits![0, 1, b0, b1, b2, b3, b4, b5] => {
-                let dest = ArgumentR8::from_bits(b0, b1, b2);
-                let source = ArgumentR8::from_bits(b3, b4, b5);
+            bits![0, 1, b5, b4, b3, b2, b1, b0] => {
+                let dest = ArgumentR8::from_bits(b3, b4, b5);
+                let source = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::LD(InstructionLD::R8_R8(dest, source)))
             }
@@ -219,49 +219,49 @@ impl Instruction {
             // =============== Block 2: 8-bit arithmetic ===============
 
             // add a, r8	1	0	0	0	0	Operand (r8)
-            bits![1, 0, 0, 0, 0, b0, b1, b2] => {
+            bits![1, 0, 0, 0, 0, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::ADD(InstructionADD::A_R8(r8)))
             }
             // adc a, r8	1	0	0	0	1	Operand (r8)
-            bits![1, 0, 0, 0, 1, b0, b1, b2] => {
+            bits![1, 0, 0, 0, 1, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::ADC(InstructionADC::A_R8(r8)))
             }
             // sub a, r8	1	0	0	1	0	Operand (r8)
-            bits![1, 0, 0, 1, 0, b0, b1, b2] => {
+            bits![1, 0, 0, 1, 0, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::SUB(InstructionSUB::A_R8(r8)))
             }
             // sbc a, r8	1	0	0	1	1	Operand (r8)
-            bits![1, 0, 0, 1, 1, b0, b1, b2] => {
+            bits![1, 0, 0, 1, 1, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::SBC(InstructionSBC::A_R8(r8)))
             }
             // and a, r8	1	0	1	0	0	Operand (r8)
-            bits![1, 0, 1, 0, 0, b0, b1, b2] => {
+            bits![1, 0, 1, 0, 0, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::AND(InstructionAND::A_R8(r8)))
             }
             // xor a, r8	1	0	1	0	1	Operand (r8)
-            bits![1, 0, 1, 0, 1, b0, b1, b2] => {
+            bits![1, 0, 1, 0, 1, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::XOR(InstructionXOR::A_R8(r8)))
             }
             // or a, r8	1	0	1	1	0	Operand (r8)
-            bits![1, 0, 1, 1, 0, b0, b1, b2] => {
+            bits![1, 0, 1, 1, 0, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::OR(InstructionOR::A_R8(r8)))
             }
             // cp a, r8	1	0	1	1	1	Operand (r8)
-            bits![1, 0, 1, 1, 1, b0, b1, b2] => {
+            bits![1, 0, 1, 1, 1, b2, b1, b0] => {
                 let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                 Some(Self::CP(InstructionCP::A_R8(r8)))
@@ -319,7 +319,7 @@ impl Instruction {
             }
 
             // ret cond	1	1	0	Condition (cond)	0	0	0
-            bits![1, 1, 0, b0, b1, 0, 0, 0] => {
+            bits![1, 1, 0, b1, b0, 0, 0, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
 
                 Some(Self::RET(InstructionRET(Some(cond))))
@@ -329,7 +329,7 @@ impl Instruction {
             // reti	1	1	0	1	1	0	0	1
             bits![1, 1, 0, 1, 1, 0, 0, 1] => Some(Self::RETI(InstructionRETI)),
             // jp cond, n16	1	1	0	Condition (cond)	0	1	0
-            bits![1, 1, 0, b0, b1, 0, 1, 0] => {
+            bits![1, 1, 0, b1, b0, 0, 1, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
                 let n16 = emulator.read_u16_at_pc();
 
@@ -344,7 +344,7 @@ impl Instruction {
             // jp hl	1	1	1	0	1	0	0	1
             bits![1, 1, 1, 0, 1, 0, 0, 1] => Some(Self::JP(InstructionJP::HL)),
             // call cond, n16	1	1	0	Condition (cond)	1	0	0
-            bits![1, 1, 0, b0, b1, 1, 0, 0] => {
+            bits![1, 1, 0, b1, b0, 1, 0, 0] => {
                 let cond = ArgumentCC::from_bits(b0, b1);
                 let n16 = emulator.read_u16_at_pc();
 
@@ -357,20 +357,20 @@ impl Instruction {
                 Some(Self::CALL(InstructionCALL::N16(ArgumentN16(n16))))
             }
             // rst tgt3	1	1	Target (tgt3)	1	1	1
-            bits![1, 1, b0, b1, b2, 1, 1, 1] => {
+            bits![1, 1, b2, b1, b0, 1, 1, 1] => {
                 let vec = ArgumentVec::from_bits(b0, b1, b2);
 
                 Some(Self::RST(InstructionRST(vec)))
             }
 
             // pop r16stk	1	1	Register (r16stk)	0	0	0	1
-            bits![1, 1, b0, b1, 0, 0, 0, 1] => {
+            bits![1, 1, b1, b0, 0, 0, 0, 1] => {
                 let r16_stk = ArgumentStkR16::from_bits(b0, b1);
 
                 Some(Self::POP(InstructionPOP(r16_stk)))
             }
             // push r16stk	1	1	Register (r16stk)	0	1	0	1
-            bits![1, 1, b0, b1, 0, 1, 0, 1] => {
+            bits![1, 1, b1, b0, 0, 1, 0, 1] => {
                 let r16_stk = ArgumentStkR16::from_bits(b0, b1);
 
                 Some(Self::PUSH(InstructionPUSH(r16_stk)))
@@ -432,72 +432,72 @@ impl Instruction {
 
                 match bits {
                     // rlc r8	0	0	0	0	0	Operand (r8)
-                    bits![0, 0, 0, 0, 0, b0, b1, b2] => {
+                    bits![0, 0, 0, 0, 0, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::RLC(InstructionRLC(r8)))
                     }
                     // rrc r8	0	0	0	0	1	Operand (r8)
-                    bits![0, 0, 0, 0, 1, b0, b1, b2] => {
+                    bits![0, 0, 0, 0, 1, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::RRC(InstructionRRC(r8)))
                     }
                     // rl r8	0	0	0	1	0	Operand (r8)
-                    bits![0, 0, 0, 1, 0, b0, b1, b2] => {
+                    bits![0, 0, 0, 1, 0, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::RL(InstructionRL(r8)))
                     }
                     // rr r8	0	0	0	1	1	Operand (r8)
-                    bits![0, 0, 0, 1, 1, b0, b1, b2] => {
+                    bits![0, 0, 0, 1, 1, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::RR(InstructionRR(r8)))
                     }
                     // sla r8	0	0	1	0	0	Operand (r8)
-                    bits![0, 0, 1, 0, 0, b0, b1, b2] => {
+                    bits![0, 0, 1, 0, 0, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::SLA(InstructionSLA(r8)))
                     }
                     // sra r8	0	0	1	0	1	Operand (r8)
-                    bits![0, 0, 1, 0, 1, b0, b1, b2] => {
+                    bits![0, 0, 1, 0, 1, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::SRA(InstructionSRA(r8)))
                     }
                     // swap r8	0	0	1	1	0	Operand (r8)
-                    bits![0, 0, 1, 1, 0, b0, b1, b2] => {
+                    bits![0, 0, 1, 1, 0, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::SWAP(InstructionSWAP(r8)))
                     }
                     // srl r8	0	0	1	1	1	Operand (r8)
-                    bits![0, 0, 1, 1, 1, b0, b1, b2] => {
+                    bits![0, 0, 1, 1, 1, b2, b1, b0] => {
                         let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::SRL(InstructionSRL(r8)))
                     }
 
                     // bit u3, r8	0	1	Bit index (u3)	Operand (r8)
-                    bits![0, 1, b0, b1, b2, b3, b4, b5] => {
-                        let u3 = ArgumentU3::from_bits(b0, b1, b2);
-                        let r8 = ArgumentR8::from_bits(b3, b4, b5);
+                    bits![0, 1, b5, b4, b3, b2, b1, b0] => {
+                        let u3 = ArgumentU3::from_bits(b3, b4, b5);
+                        let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::BIT(InstructionBIT(u3, r8)))
                     }
                     // res u3, r8	1	0	Bit index (u3)	Operand (r8)
-                    bits![1, 0, b0, b1, b2, b3, b4, b5] => {
-                        let u3 = ArgumentU3::from_bits(b0, b1, b2);
-                        let r8 = ArgumentR8::from_bits(b3, b4, b5);
+                    bits![1, 0, b5, b4, b3, b2, b1, b0] => {
+                        let u3 = ArgumentU3::from_bits(b3, b4, b5);
+                        let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::RES(InstructionRES(u3, r8)))
                     }
                     // set u3, r8	1	1	Bit index (u3)	Operand (r8)
-                    bits![1, 1, b0, b1, b2, b3, b4, b5] => {
-                        let u3 = ArgumentU3::from_bits(b0, b1, b2);
-                        let r8 = ArgumentR8::from_bits(b3, b4, b5);
+                    bits![1, 1, b5, b4, b3, b2, b1, b0] => {
+                        let u3 = ArgumentU3::from_bits(b3, b4, b5);
+                        let r8 = ArgumentR8::from_bits(b0, b1, b2);
 
                         Some(Self::SET(InstructionSET(u3, r8)))
                     }

@@ -19,7 +19,7 @@ pub enum InstructionCP {
 }
 
 impl InstructionTrait for InstructionCP {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match self {
             Self::A_R8(reg) => {
                 let register_a = emulator.accumulator_and_flags.high();

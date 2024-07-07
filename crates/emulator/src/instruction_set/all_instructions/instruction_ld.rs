@@ -37,10 +37,10 @@ pub enum InstructionLD {
 }
 
 impl InstructionTrait for InstructionLD {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match *self {
             Self::R8_R8(to, from) => {
-                *to.get_mut(emulator) = from.get(emulator);
+                to.set(emulator, from.get(emulator));
 
                 match (to, from) {
                     // impossible
@@ -51,7 +51,7 @@ impl InstructionTrait for InstructionLD {
                 }
             }
             Self::R8_N8(to, from) => {
-                *to.get_mut(emulator) = from.get(emulator);
+                to.set(emulator, from.get(emulator));
 
                 match to {
                     ArgumentR8::AtHL => 3,
@@ -59,38 +59,44 @@ impl InstructionTrait for InstructionLD {
                 }
             }
             Self::R16_N16(to, from) => {
-                *to.get_mut(emulator) = from.get(emulator);
+                to.set(emulator, from.get(emulator));
 
                 3
             }
             Self::AtR16_A(to) => {
-                *to.at_mut(emulator) = emulator.accumulator_and_flags.high();
+                to.set_at(emulator, emulator.accumulator_and_flags.high());
 
                 2
             }
             Self::AtN16_A(to) => {
-                *to.at_mut(emulator) = emulator.accumulator_and_flags.high();
+                to.set_at(emulator, emulator.accumulator_and_flags.high());
 
                 4
             }
             Self::A_AtR16(from) => {
-                emulator.accumulator_and_flags.set_high(from.at(emulator));
+                emulator
+                    .accumulator_and_flags
+                    .set_high(from.get_at(emulator));
 
                 2
             }
             Self::A_AtN16(from) => {
-                emulator.accumulator_and_flags.set_high(from.at(emulator));
+                emulator
+                    .accumulator_and_flags
+                    .set_high(from.get_at(emulator));
 
                 4
             }
             Self::AtHLI_A => {
-                *emulator.register_hl.at_mut(emulator) = emulator.accumulator_and_flags.high();
+                let value = emulator.accumulator_and_flags.high();
+                emulator.register_hl.clone().set_at(emulator, value);
                 emulator.register_hl.increment();
 
                 2
             }
             Self::AtHLD_A => {
-                *emulator.register_hl.at_mut(emulator) = emulator.accumulator_and_flags.high();
+                let value = emulator.accumulator_and_flags.high();
+                emulator.register_hl.clone().set_at(emulator, value);
                 emulator.register_hl.decrement();
 
                 2
@@ -98,7 +104,7 @@ impl InstructionTrait for InstructionLD {
             Self::A_AtHLI => {
                 emulator
                     .accumulator_and_flags
-                    .set_high(emulator.register_hl.at(emulator));
+                    .set_high(emulator.register_hl.get_at(emulator));
                 emulator.register_hl.increment();
 
                 2
@@ -106,7 +112,7 @@ impl InstructionTrait for InstructionLD {
             Self::A_AtHLD => {
                 emulator
                     .accumulator_and_flags
-                    .set_high(emulator.register_hl.at(emulator));
+                    .set_high(emulator.register_hl.get_at(emulator));
                 emulator.register_hl.decrement();
 
                 2

@@ -1,4 +1,3 @@
-use crate::AppDebugState;
 use emulator::*;
 use macroquad::math::Vec2;
 
@@ -8,8 +7,6 @@ pub struct AppState {
     pub steps: usize,
 
     pub screen_scale: f32,
-
-    pub debug_state: AppDebugState,
 }
 
 impl AppState {
@@ -18,12 +15,7 @@ impl AppState {
             emulator,
             steps: 0,
             screen_scale: 3.0,
-            debug_state: AppDebugState::default(),
         }
-    }
-
-    pub fn init(&mut self) {
-        self.debug_state.init();
     }
 
     /// Get destination screen size

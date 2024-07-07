@@ -11,7 +11,7 @@ use crate::*;
 pub struct InstructionPOP(pub ArgumentStkR16);
 
 impl InstructionTrait for InstructionPOP {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let Self(reg) = *self;
 
         let value = emulator.pop_from_stack();

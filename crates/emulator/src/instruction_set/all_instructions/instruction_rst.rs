@@ -8,7 +8,7 @@ use crate::*;
 pub struct InstructionRST(pub ArgumentVec);
 
 impl InstructionTrait for InstructionRST {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let vec = self.0.get(emulator);
 
         emulator.push_to_stack(emulator.program_counter);

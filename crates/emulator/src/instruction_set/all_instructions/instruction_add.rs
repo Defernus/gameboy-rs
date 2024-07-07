@@ -42,7 +42,7 @@ pub enum InstructionADD {
 }
 
 impl InstructionTrait for InstructionADD {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         match self {
             Self::A_R8(input) => {
                 exec_add_to_a(emulator, input.get(emulator));

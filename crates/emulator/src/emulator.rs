@@ -2,17 +2,19 @@ use crate::*;
 
 pub struct Emulator {
     /// **AF** register
-    pub accumulator_and_flags: Register,
+    pub accumulator_and_flags: CpuRegister,
     /// **BC** register
-    pub register_bc: Register,
+    pub register_bc: CpuRegister,
     /// **DE** register
-    pub register_de: Register,
+    pub register_de: CpuRegister,
     /// **HL** register
-    pub register_hl: Register,
+    pub register_hl: CpuRegister,
     /// **SP** register
     pub stack_pointer: StackPointer,
     /// **PC** register
     pub program_counter: ProgramCounter,
+
+    pub screen: Screen,
 
     pub rom: Option<Rom>,
 
@@ -21,7 +23,7 @@ pub struct Emulator {
     /// IME: Interrupt master enable flag
     pub ime_flag: bool,
 
-    /// Number of cycles that have passed since the CPU was started
+    /// Number of M-cycles that have passed since the CPU was started
     pub cycles: usize,
 
     pub is_in_low_power_mode: bool,
@@ -29,6 +31,15 @@ pub struct Emulator {
     /// **IR** register. Internal cpu register used to store the opcode of the
     /// next instruction.
     pub instruction_register: u8,
+
+    /// If true, the CPU will run at double speed
+    pub double_speed: bool,
+
+    /// Amount of dots since the last scanline change
+    pub scanline_progress: usize,
+
+    // dots spent in current current ppu mode
+    pub dots_in_current_mode: usize,
 
     pub rom_bank_00: Box<[u8; MEMORY_SIZE_ROM_BANK_00]>,
     pub rom_bank_01: Box<[u8; MEMORY_SIZE_ROM_BANK_01]>,
@@ -41,6 +52,9 @@ pub struct Emulator {
     pub io_registers: Box<[u8; MEMORY_SIZE_IO_REGISTERS]>,
     pub high_ram: Box<[u8; MEMORY_SIZE_HIGH_RAM]>,
     pub interrupt_enable_register: u8,
+
+    /// Indicate if a new frame is available to be rendered
+    pub is_frame_available: bool,
 }
 
 impl Default for Emulator {
@@ -52,18 +66,23 @@ impl Default for Emulator {
 impl Emulator {
     #[inline(always)]
     pub fn new() -> Self {
-        Self {
-            accumulator_and_flags: Register::default(),
-            register_bc: Register::default(),
-            register_de: Register::default(),
-            register_hl: Register::default(),
+        let mut emulator = Self {
+            accumulator_and_flags: CpuRegister::default(),
+            register_bc: CpuRegister::default(),
+            register_de: CpuRegister::default(),
+            register_hl: CpuRegister::default(),
             stack_pointer: StackPointer::default(),
             program_counter: ProgramCounter::default(),
             delayed_ime_set: false,
             ime_flag: false,
             rom: None,
             cycles: 0,
+            double_speed: false,
             is_in_low_power_mode: false,
+            scanline_progress: 0,
+            dots_in_current_mode: 0,
+
+            screen: Screen::new(),
 
             instruction_register: 0,
 
@@ -78,7 +97,29 @@ impl Emulator {
             io_registers: Box::new([0; MEMORY_SIZE_IO_REGISTERS]),
             high_ram: Box::new([0; MEMORY_SIZE_HIGH_RAM]),
             interrupt_enable_register: 0,
-        }
+
+            is_frame_available: false,
+        };
+
+        emulator.init();
+
+        emulator
+    }
+
+    fn init(&mut self) {
+        self.init_cpu_registers();
+        self.init_memory();
+    }
+
+    fn init_cpu_registers(&mut self) {
+        self.accumulator_and_flags.set(0x1180);
+        // TODO set BC based on DMG mode [more info](https://gbdev.io/pandocs/Power_Up_Sequence.html#cgbdmg_b)
+        self.register_bc.set(0x0000);
+        self.register_de.set(0xFF56);
+        // TOTO set HL based on DMG mode [more info](https://gbdev.io/pandocs/Power_Up_Sequence.html#cgbdmg_hl)
+        self.register_hl.set(0x000D);
+        self.program_counter.0 = 0x0100;
+        self.stack_pointer.0 = 0xFFFE;
     }
 
     pub fn from_rom(rom: impl Into<Rom>) -> Self {
@@ -102,7 +143,7 @@ impl Emulator {
         emulator
     }
 
-    /// Handle given instruction without fetch and pc increment
+    /// Handle given instruction without fetch and pc increment, but with PPU processing
     pub fn handle_instruction(&mut self, instruction: Instruction) {
         let set_ime = self.delayed_ime_set;
 
@@ -112,7 +153,13 @@ impl Emulator {
             panic!("Instruction {:?} failed", instruction);
         }
 
-        self.cycles += cycles as usize;
+        self.cycles += cycles;
+
+        self.update_registers();
+
+        for _ in 0..cycles {
+            self.handle_dots_in_cycle();
+        }
 
         if set_ime {
             self.ime_flag = true;
@@ -151,15 +198,5 @@ impl Emulator {
     /// Fetch next instruction opcode, store it in the IR register and increment the PC
     pub fn fetch_opcode(&mut self) {
         self.instruction_register = self.read_u8_at_pc();
-    }
-
-    /// Get control register
-    pub fn reg<T: ControlRegister>(&self) -> T {
-        T::from(self.get(T::ADDRESS))
-    }
-
-    /// Get mutable reference to control register
-    pub fn reg_mut<T: ControlRegister>(&mut self) -> &mut T {
-        T::from_memory_mut(self)
     }
 }

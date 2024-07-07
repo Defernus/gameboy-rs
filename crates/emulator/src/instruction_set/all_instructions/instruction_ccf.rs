@@ -16,7 +16,7 @@ use crate::*;
 pub struct InstructionCCF;
 
 impl InstructionTrait for InstructionCCF {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let flags = emulator.accumulator_and_flags.low_mut();
 
         set_flag(flags, FLAG_SUBTRACT, false);

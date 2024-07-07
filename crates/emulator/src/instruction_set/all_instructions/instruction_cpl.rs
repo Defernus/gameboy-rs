@@ -13,7 +13,7 @@ use crate::*;
 pub struct InstructionCPL;
 
 impl InstructionTrait for InstructionCPL {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let register_a = emulator.accumulator_and_flags.high_mut();
         *register_a ^= 0xFF;
 

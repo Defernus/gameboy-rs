@@ -14,7 +14,7 @@ use crate::*;
 pub struct InstructionBIT(pub ArgumentU3, pub ArgumentR8);
 
 impl InstructionTrait for InstructionBIT {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let (bit, register) = (self.0, self.1);
 
         let value = register.get(emulator);

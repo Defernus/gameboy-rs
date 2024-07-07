@@ -15,7 +15,7 @@ use crate::*;
 pub struct InstructionRRCA;
 
 impl InstructionTrait for InstructionRRCA {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         rotate_register_right(emulator, ArgumentR8::A);
 
         let flags = emulator.accumulator_and_flags.low_mut();

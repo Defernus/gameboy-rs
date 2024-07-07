@@ -8,7 +8,7 @@ use crate::*;
 pub struct InstructionDI;
 
 impl InstructionTrait for InstructionDI {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         emulator.ime_flag = false;
 
         1

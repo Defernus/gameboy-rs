@@ -8,7 +8,7 @@ use crate::*;
 pub struct InstructionSTOP;
 
 impl InstructionTrait for InstructionSTOP {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         emulator.is_in_low_power_mode = true;
 
         // TODO return proper value of cycles

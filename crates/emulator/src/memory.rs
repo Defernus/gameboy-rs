@@ -83,60 +83,94 @@ pub const MEMORY_RANGE_OBJECT_TILES: std::ops::Range<usize> = 0x8000..0x8FFF;
 
 // TODO add I/O range
 
+/// Check if the `address` is accessible by the CPU based on the current PPU mode.
+fn is_address_accessible_ppu(address: u16, ppu_mode: PpuMode) -> bool {
+    let address = address as usize;
+
+    // vram is not accessible in mode 3
+    if MEMORY_RANGE_VRAM.contains(&address) && ppu_mode == PpuMode::Mode3 {
+        return false;
+    }
+
+    // object attribute memory (OAM) is not accessible in mode 2 and 3
+    if MEMORY_RANGE_OAM.contains(&address) && [PpuMode::Mode2, PpuMode::Mode3].contains(&ppu_mode) {
+        return false;
+    }
+
+    true
+}
+
 impl Emulator {
+    pub fn is_address_accessible(&self, address: u16) -> bool {
+        let ppu_mode = self.reg::<RegisterSTAT>().get_ppu_mode();
+        is_address_accessible_ppu(address, ppu_mode)
+    }
+
+    /// Get value in memory as CPU would see it.
+    ///
+    /// E.g. of PPU in mode 3, all video related memory would return 0xFF
     #[inline(always)]
     pub fn get(&self, address: u16) -> u8 {
+        if !self.is_address_accessible(address) {
+            return 0xFF;
+        }
+
+        *self.get_force(address)
+    }
+
+    /// Get current value in memory even if it's not accessible by the CPU.
+    pub fn get_force(&self, address: u16) -> &u8 {
         let index = address as usize;
         if MEMORY_RANGE_ROM_BANK_00.contains(&index) {
-            return self.rom_bank_00[index];
+            return &self.rom_bank_00[index];
         }
 
         if MEMORY_RANGE_ROM_BANK_01.contains(&index) {
-            return self.rom_bank_01[index - MEMORY_RANGE_ROM_BANK_01.start];
+            return &self.rom_bank_01[index - MEMORY_RANGE_ROM_BANK_01.start];
         }
 
         if MEMORY_RANGE_VRAM.contains(&index) {
-            return self.vram[index - MEMORY_RANGE_VRAM.start];
+            return &self.vram[index - MEMORY_RANGE_VRAM.start];
         }
 
         if MEMORY_RANGE_EXTERNAL_RAM.contains(&index) {
-            return self.external_ram[index - MEMORY_RANGE_EXTERNAL_RAM.start];
+            return &self.external_ram[index - MEMORY_RANGE_EXTERNAL_RAM.start];
         }
 
         if MEMORY_RANGE_WORK_RAM_0.contains(&index) {
-            return self.work_ram_0[index - MEMORY_RANGE_WORK_RAM_0.start];
+            return &self.work_ram_0[index - MEMORY_RANGE_WORK_RAM_0.start];
         }
 
         if MEMORY_RANGE_WORK_RAM_1.contains(&index) {
-            return self.work_ram_1[index - MEMORY_RANGE_WORK_RAM_1.start];
+            return &self.work_ram_1[index - MEMORY_RANGE_WORK_RAM_1.start];
         }
 
         if MEMORY_RANGE_ECHO_RAM.contains(&index) {
             let index = index - MEMORY_RANGE_ECHO_RAM.start;
             if index < MEMORY_SIZE_WORK_RAM_0 {
-                return self.work_ram_0[index];
+                return &self.work_ram_0[index];
             }
-            return self.work_ram_1[index - MEMORY_SIZE_WORK_RAM_0];
+            return &self.work_ram_1[index - MEMORY_SIZE_WORK_RAM_0];
         }
 
         if MEMORY_RANGE_OAM.contains(&index) {
-            return self.oam[index - MEMORY_RANGE_OAM.start];
+            return &self.oam[index - MEMORY_RANGE_OAM.start];
         }
 
         if MEMORY_RANGE_NOT_USABLE.contains(&index) {
-            return self.not_usable[index - MEMORY_RANGE_NOT_USABLE.start];
+            return &self.not_usable[index - MEMORY_RANGE_NOT_USABLE.start];
         }
 
         if MEMORY_RANGE_IO_REGISTERS.contains(&index) {
-            return self.io_registers[index - MEMORY_RANGE_IO_REGISTERS.start];
+            return &self.io_registers[index - MEMORY_RANGE_IO_REGISTERS.start];
         }
 
         if MEMORY_RANGE_HIGH_RAM.contains(&index) {
-            return self.high_ram[index - MEMORY_RANGE_HIGH_RAM.start];
+            return &self.high_ram[index - MEMORY_RANGE_HIGH_RAM.start];
         }
 
         if MEMORY_ADDRESS_INTERRUPT_ENABLE_REGISTER == index {
-            return self.interrupt_enable_register;
+            return &self.interrupt_enable_register;
         }
 
         panic!("Invalid memory address: {address:#04X}");
@@ -172,8 +206,8 @@ impl Emulator {
         self.get_u16(address)
     }
 
-    #[inline(always)]
-    pub fn get_mut(&mut self, address: u16) -> &mut u8 {
+    /// Get mutable reference to value in memory even if it's not accessible by the CPU.
+    pub fn get_mut_force(&mut self, address: u16) -> &mut u8 {
         let index = address as usize;
         if MEMORY_RANGE_ROM_BANK_00.contains(&index) {
             return &mut self.rom_bank_00[index];
@@ -230,15 +264,54 @@ impl Emulator {
         panic!("Invalid memory address: {address:#04X}");
     }
 
+    /// Set value in memory if it's accessible by the CPU (check `get` method for details).
     #[inline(always)]
     pub fn set(&mut self, address: u16, value: u8) {
-        *self.get_mut(address) = value;
+        if !self.is_address_accessible(address) {
+            return;
+        }
+
+        self.set_force(address, value);
+    }
+
+    /// Set value in memory even if it's not accessible by the CPU.
+    pub fn set_force(&mut self, address: u16, value: u8) {
+        *self.get_mut_force(address) = value;
+    }
+
+    pub(crate) fn init_memory(&mut self) {
+        // TODO add rest IO registers
+        self.reg_reset::<RegisterLCDC>();
+        self.reg_reset::<RegisterSCY>();
+        self.reg_reset::<RegisterSCX>();
+        self.reg_reset::<RegisterSTAT>();
+        self.reg_reset::<RegisterLY>();
+        self.reg_reset::<RegisterLYC>();
+        self.reg_reset::<RegisterWY>();
+        self.reg_reset::<RegisterWX>();
+    }
+
+    /// Update registers after a cycle.
+    pub fn update_registers(&mut self) {
+        let ly = self.reg::<RegisterLY>().0;
+        let lyc = self.reg::<RegisterLYC>().0;
+
+        self.reg_mut::<RegisterSTAT>().set_lyc_equals_ly(ly == lyc);
     }
 }
 
-pub trait MemoryAccess {
-    fn at(&self, emulator: &Emulator) -> u8;
-    fn at_mut<'a>(&self, emulator: &'a mut Emulator) -> &'a mut u8;
+pub trait MemoryAddress {
+    /// Get value at the current address as CPU would see it.
+    fn get_at(&self, emulator: &Emulator) -> u8;
+
+    /// Get value at the current address even if it's not accessible by the CPU.
+    fn get_at_force(&self, emulator: &Emulator) -> u8;
+
+    /// Set value at the current address if it's accessible by the CPU.
+    fn set_at(&self, emulator: &mut Emulator, value: u8);
+
+    /// Set value at the current address even if it's not accessible by the CPU.
+    fn set_at_force(&self, emulator: &mut Emulator, value: u8);
 }
 
 #[test]

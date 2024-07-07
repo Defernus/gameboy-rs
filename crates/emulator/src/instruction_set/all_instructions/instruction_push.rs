@@ -8,7 +8,7 @@ use crate::*;
 pub struct InstructionPUSH(pub ArgumentStkR16);
 
 impl InstructionTrait for InstructionPUSH {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let Self(reg) = *self;
 
         emulator.push_to_stack(reg.get(emulator));

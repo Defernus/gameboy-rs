@@ -1,7 +1,5 @@
 use crate::*;
 
-pub const SCREEN_WIDTH: usize = 160;
-pub const SCREEN_HEIGHT: usize = 144;
 /// GBC has 15 bit color depth.
 pub const RENDER_PIXEL_SIZE: usize = 2;
 pub const SCREEN_SIZE: usize = SCREEN_WIDTH * SCREEN_HEIGHT;

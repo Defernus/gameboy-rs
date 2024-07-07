@@ -12,6 +12,7 @@ keywords = { workspace = true }
 enum_dispatch.workspace = true
 
 emulator-derive = { path = "../emulator-derive" }
+bit-flag = { path = "../bit-flag" }
 
 [dev-dependencies]
 serde.workspace = true

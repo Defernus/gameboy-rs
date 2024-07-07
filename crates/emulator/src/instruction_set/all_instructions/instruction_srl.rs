@@ -8,7 +8,7 @@ use crate::*;
 pub struct InstructionSRL(pub ArgumentR8);
 
 impl InstructionTrait for InstructionSRL {
-    fn execute(&self, emulator: &mut Emulator) -> u8 {
+    fn execute(&self, emulator: &mut Emulator) -> usize {
         let Self(reg) = *self;
 
         let value = reg.get(emulator);
