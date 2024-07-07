@@ -57,6 +57,7 @@ impl TestData {
     fn execute_test(self, index: usize, test_opcode: u8, test_path: &str) {
         let mut emulator = Emulator::default();
         emulator.instruction_register = test_opcode;
+        emulator.disable_registers_update = true;
 
         self.initial_state.set_to(&mut emulator);
 

@@ -53,6 +53,9 @@ pub struct Emulator {
     pub high_ram: Box<[u8; MEMORY_SIZE_HIGH_RAM]>,
     pub interrupt_enable_register: u8,
 
+    /// Disable updating registers after each instruction, useful for testing
+    pub disable_registers_update: bool,
+
     /// Indicate if a new frame is available to be rendered
     pub is_frame_available: bool,
 
@@ -84,6 +87,7 @@ impl Emulator {
             scanline_progress: 0,
             dots_in_current_mode: 0,
             mode_3_duration: MODE_3_BASE_DURATION,
+            disable_registers_update: false,
 
             screen: Screen::new(),
 
@@ -158,7 +162,9 @@ impl Emulator {
 
         self.cycles += cycles;
 
-        self.update_registers();
+        if !self.disable_registers_update {
+            self.update_registers();
+        }
 
         for _ in 0..cycles {
             self.handle_dots_in_cycle();
