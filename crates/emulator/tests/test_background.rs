@@ -8,13 +8,15 @@ const TEST_TILE: [u8; 16] = [
 fn test_background() {
     let mut emulator = Emulator::default();
 
+    emulator.reg_mut::<RegisterLCDC>().set_bg_tile_map(false);
+
     for (i, tile_byte) in TEST_TILE.iter().enumerate() {
-        let address = MEMORY_RANGE_TILES_BLOCK2.start + i;
+        let address = MEMORY_RANGE_TILES_BLOCK0.start + i;
         emulator.set(address as u16, *tile_byte);
     }
 
     for (i, tile_byte) in TEST_TILE.iter().enumerate() {
-        let address = MEMORY_RANGE_TILES_BLOCK2.start + i;
+        let address = MEMORY_RANGE_TILES_BLOCK0.start + i;
         emulator.set(address as u16, *tile_byte);
     }
 
@@ -25,7 +27,7 @@ fn test_background() {
     let tile_index = 3;
     emulator.set(MEMORY_RANGE_TILE_INDICES_BANK0.start as u16 + tile_index, 0);
 
-    let background = emulator.get_background_tiles();
+    let background = emulator.get_tiles(false);
 
     assert_eq!(background[0], Tile::default());
     assert_eq!(background[1], Tile::default());
