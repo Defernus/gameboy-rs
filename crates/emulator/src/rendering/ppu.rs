@@ -73,6 +73,7 @@ impl Emulator {
                     if current_scanline + 1 == SCREEN_HEIGHT {
                         // screen end reached
                         self.is_frame_available = true;
+                        self.reg_mut::<RegisterIF>().set_lcd(true);
                         PpuMode::Mode1.into()
                     } else {
                         // scanline ended, start new one

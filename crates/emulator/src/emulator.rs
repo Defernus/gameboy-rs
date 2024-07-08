@@ -1,6 +1,8 @@
 use crate::*;
 
 pub struct Emulator {
+    pub debugger: Option<Box<dyn EmulatorDebugger>>,
+
     /// **AF** register
     pub accumulator_and_flags: CpuRegister,
     /// **BC** register
@@ -75,6 +77,7 @@ impl Emulator {
     #[inline(always)]
     pub fn new() -> Self {
         let mut emulator = Self {
+            debugger: None,
             accumulator_and_flags: CpuRegister::default(),
             register_bc: CpuRegister::default(),
             register_de: CpuRegister::default(),
@@ -115,6 +118,15 @@ impl Emulator {
         emulator.init();
 
         emulator
+    }
+
+    pub fn set_debugger(&mut self, debugger: Box<dyn EmulatorDebugger>) {
+        self.debugger = Some(debugger);
+    }
+
+    pub fn with_debugger(mut self, debugger: Box<dyn EmulatorDebugger>) -> Self {
+        self.set_debugger(debugger);
+        self
     }
 
     fn init(&mut self) {
@@ -158,7 +170,12 @@ impl Emulator {
     pub fn handle_instruction(&mut self, instruction: Instruction) {
         let set_ime = self.delayed_ime_set;
 
+        let opcode = self.instruction_register;
         let cycles = instruction.execute(self);
+        if let Some(mut debugger) = self.debugger.take() {
+            debugger.on_after_instruction(self, opcode, instruction);
+            self.debugger = Some(debugger);
+        }
 
         if cycles == 0 {
             panic!("Instruction {:?} failed", instruction);
@@ -177,6 +194,8 @@ impl Emulator {
         for _ in 0..cycles {
             self.handle_dots_in_cycle();
         }
+
+        self.process_interrupt();
 
         if set_ime {
             self.ime_flag = true;

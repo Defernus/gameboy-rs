@@ -10,5 +10,7 @@ keywords = { workspace = true }
 
 [dependencies]
 macroquad.workspace = true
+sqlite.workspace = true
+thiserror.workspace = true
 
 emulator = { path = "../emulator" }

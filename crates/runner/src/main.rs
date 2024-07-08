@@ -5,19 +5,21 @@ use runner::*;
 fn window_conf() -> Conf {
     Conf {
         window_title: "Emulator".into(),
-        window_width: 1200,
-        window_height: 800,
+        window_width: 600,
+        window_height: 400,
         ..Default::default()
     }
 }
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    // let rom = include_bytes!("../../../roms/tetris.gb");
-    let rom = include_bytes!("../../../test-roms/hello.gb");
+    let rom = include_bytes!("../../../roms/tetris.gb");
+    // let rom = include_bytes!("../../../test-roms/hello.gb");
+
+    let debugger = SqliteDebugger::new("debug.db").unwrap();
 
     let mut state = AppState {
-        emulator: Emulator::from_rom(rom.to_vec()),
+        emulator: Emulator::from_rom(rom.to_vec()).with_debugger(Box::new(debugger)),
         ..Default::default()
     };
 
@@ -35,24 +37,10 @@ async fn main() {
     );
     let window_texture = Texture2D::from_image(&window_image);
 
-    let mut mode_3_duration = MODE_3_BASE_DURATION;
-
     loop {
         if is_key_pressed(KeyCode::R) {
             state.emulator = Emulator::from_rom(rom.to_vec());
-        }
-
-        if is_key_pressed(KeyCode::Up) {
-            mode_3_duration += 1;
-            state.emulator = Emulator::from_rom(rom.to_vec());
-            state.emulator.mode_3_duration = mode_3_duration;
-            println!("Mode 3 duration: {}", state.emulator.mode_3_duration);
-        }
-        if is_key_pressed(KeyCode::Down) {
-            mode_3_duration -= 1;
-            state.emulator = Emulator::from_rom(rom.to_vec());
-            state.emulator.mode_3_duration = mode_3_duration;
-            println!("Mode 3 duration: {}", state.emulator.mode_3_duration);
+            println!("Reset");
         }
 
         state.emulator.next_frame();
